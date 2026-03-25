@@ -124,3 +124,7 @@ REST_FRAMEWORK = {
         # 'rest_framework.renderers.BrowsableAPIRenderer',
     )
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+
+EMAIL_FILE_PATH = 'email'

@@ -4,13 +4,16 @@ from rest_framework.response import Response
 from .models import *
 from .serializer import *
 from django.shortcuts import get_object_or_404
+from .utils import *
 
 @api_view(['POST'])
 def post_new_report(request): 
     data = request.data 
     serializer = DefectReportSerializer(data=data)
     if serializer.is_valid():
-        serializer.save()
+        report = serializer.save()
+        if report and getattr(report, 'testerEmail', None):
+            send_status_update_email(report)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -38,11 +41,14 @@ def get_full_report(request, id):
     return Response(serializer.data)
 
 @api_view(['PATCH'])
-def patch_update_report(request):
-
-
-    return Response(status=status.HTTP_400_BAD_REQUEST)
-
+def patch_update_report(request, id, new_status):
+    report = get_object_or_404(DefectReport, id=id)
+    report.status = new_status.upper()
+    report.save()
+    if report and getattr(report, 'testerEmail', None):
+        send_status_update_email(report)
+    serializer = DefectReportSerializer(report)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 # @api_view(['POST'])
 # def post_comment(request): 
