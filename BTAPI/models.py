@@ -2,13 +2,13 @@ from django.db import models
 
 class Tester(models.Model):
     id = models.CharField(primary_key=True)
-    email = models.EmailField()
+    email = models.EmailField(null=True, blank=True)
 
     def __str__(self):
         return self.id
     
 class Product(models.Model):
-    id = models.CharField(primary_key=True)
+    id = models.IntegerField(primary_key=True)
     displayName = models.CharField()
     description = models.CharField()
     currentVersion = models.CharField()
@@ -18,9 +18,9 @@ class Product(models.Model):
         return self.displayName
     
 class ProductOwner(models.Model):
-    id = models.CharField(primary_key=True)
+    id = models.IntegerField(primary_key=True)
     fullName = models.CharField()
-    email = models.EmailField()
+    email = models.EmailField(null=True, blank=True)
     username = models.CharField()
     isActive = models.BooleanField()
     productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default='NUL')
@@ -29,10 +29,10 @@ class ProductOwner(models.Model):
         return self.username
     
 class Developer(models.Model):
-    id = models.CharField(primary_key=True)
+    id = models.IntegerField(primary_key=True)
     productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default='NUL')
     fullName = models.CharField()
-    email = models.EmailField()
+    email = models.EmailField(null=True, blank=True)
     username = models.CharField()
     isActive = models.BooleanField()
 
@@ -70,7 +70,7 @@ class DefectReport(models.Model):
     severity = models.IntegerField(choices=Severity.choices, default=Severity.LOW)
     priority = models.IntegerField(choices=Priority.choices, default=Priority.LOW)
     submittedAt = models.DateTimeField(auto_now_add=True)
-    testerEmail = models.EmailField()
+    testerEmail = models.EmailField(null=True, blank=True)
     productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default='NUL')
     assignedToId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default='NUL')
 

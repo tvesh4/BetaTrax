@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from .models import *
 from .serializer import *
-from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 
 @api_view(['POST'])
@@ -28,26 +28,32 @@ def post_new_report(request):
 
 @api_view(['GET'])
 def get_new_reports(request):
-    queryset = DefectReport.objects.all()
+    reports = DefectReport.objects.filter(status=DefectReport.Status.NEW)
     
-    # Grab 'status' from the URL (?status=NE)
-    status_filter = request.query_params.get('status')
-    
-    if status_filter:
-        queryset = queryset.filter(status=status_filter)
-        
-    serializer = DefectReportSerializer(queryset, many=True)
+    class LiteSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = DefectReport
+            fields = ['id', 'title', 'status']
+            
+    serializer = LiteSerializer(reports, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
-def get_assigned_defects(request):
-    return Response(status=status.HTTP_400_BAD_REQUEST)
-
+def get_assigned_defects(request, id):
+    reports = DefectReport.objects.filter(
+        status=DefectReport.Status.ASSIGNED,
+        assignedToId=id
+    )
+    data = reports.values('id', 'status', 'title')
+    if not data:
+        return Response({"message": "No assigned reports for this developer"}, status=200)
+    return Response(data)
 
 @api_view(['GET'])
-def get_full_report(request):
-    return Response(status=status.HTTP_400_BAD_REQUEST)
-
+def get_full_report(request, id):
+    report = get_object_or_404(DefectReport, pk=id)
+    serializer = DefectReportSerializer(report)
+    return Response(serializer.data)
 
 @api_view(['PATCH'])
 def patch_update_report(request):
