@@ -18,8 +18,11 @@ def post_new_report(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-def get_new_reports(request):
-    reports = DefectReport.objects.filter(status=DefectReport.Status.NEW)
+def get_reports(request, status):
+    if status.casefold() == "NEW".casefold():
+        reports = DefectReport.objects.filter(status=DefectReport.Status.NEW)
+    elif status.casefold() == "FIXED".casefold():
+        reports = DefectReport.objects.filter(status=DefectReport.Status.FIXED)
     serializer = ReportLiteSerializer(reports, many=True)
     return Response(serializer.data)
 
@@ -43,7 +46,7 @@ def get_full_report(request, id):
 @api_view(['PATCH'])
 def patch_update_report(request, id, new_status):
     report = get_object_or_404(DefectReport, id=id)
-    report.status = new_status.upper()
+    report.status = new_status.casefold()
     report.save()
     if report and getattr(report, 'testerEmail', None):
         send_status_update_email(report)
