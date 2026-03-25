@@ -15,14 +15,18 @@ def post_new_report(request):
     defectReport_serializer = DefectReportSerializer(data=defectReport_data)
 
     if tester_serializer.is_valid() and defectReport_serializer.is_valid():
-        tester_serializer.save()
-        defectReport_serializer.save()
+        # 1. Save the tester first to get an ID
+        tester_instance = tester_serializer.save()
+        
+        # 2. Save the report and link it to that specific tester
+        defectReport_serializer.save(tester=tester_instance)
 
         return Response({
             "tester": tester_serializer.data,
             "defectReport": defectReport_serializer.data
         }, status=status.HTTP_201_CREATED)
 
+    # Combine errors from both serializers
     all_errors = {**tester_serializer.errors, **defectReport_serializer.errors}
     return Response(all_errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -57,10 +61,12 @@ def get_full_report(request, id):
 
 @api_view(['PATCH'])
 def patch_update_report(request):
+
+    
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
-def post_comment(request): 
-    return Response(status=status.HTTP_400_BAD_REQUEST)
+# @api_view(['POST'])
+# def post_comment(request): 
+#     return Response(status=status.HTTP_400_BAD_REQUEST)
 
