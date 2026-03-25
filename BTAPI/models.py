@@ -23,14 +23,14 @@ class ProductOwner(models.Model):
     email = models.EmailField(null=True, blank=True)
     username = models.CharField()
     isActive = models.BooleanField()
-    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default=None)
+    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
 
     def __str__(self):
         return self.username
     
 class Developer(models.Model):
     id = models.IntegerField(primary_key=True)
-    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default=None)
+    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
     fullName = models.CharField()
     email = models.EmailField(null=True, blank=True)
     username = models.CharField()
@@ -62,7 +62,7 @@ class DefectReport(models.Model):
     title = models.CharField()
     description = models.CharField()
     reproductionSteps = models.CharField()
-    evaluatedById = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default=None)
+    evaluatedById = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
     status = models.CharField(
         choices=Status.choices,
         default=Status.NEW,
@@ -72,7 +72,7 @@ class DefectReport(models.Model):
     submittedAt = models.DateTimeField(auto_now_add=True)
     testerEmail = models.EmailField(null=True, blank=True)
     productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default=None)
-    assignedToId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default=None)
+    assignedToId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
 
     def __str__(self):
         return self.title
