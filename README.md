@@ -7,9 +7,9 @@ Group F of COMP3297 2025-2026 Semester 2
 3. Start django server: python3 manage.py runserver
 
 ## Key Assumptions for Sprint 1 Executable
-- This increment is configured for a single product. A default product (e.g., with ID "PROD-1") must be created via the Django Admin interface before use. All submitted defect reports are associated with this product.
+- This increment is configured for 1 product. A default product (e.g., with ID "PROD-1") must be created via the Django Admin interface before use. All submitted defect reports are associated with this product.
 - Authentication for Product Owners and Developers is out of scope for this sprint. API endpoints assume the requests are from an authenticated source. User records for Product Owners and Developers must be created via the Django Admin interface to allow assignment.
-- **Email Notifications:** Django is configured to write emails to the console (standard) for easy testing as per technical note. Actually emails are not sent.
+- Django is configured to write emails to the console for easy testing as per technical note. Actually emails are not sent.
 
 ## Limitations / Functionality Not Working Correctly
 - 
