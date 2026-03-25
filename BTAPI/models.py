@@ -23,14 +23,14 @@ class ProductOwner(models.Model):
     email = models.EmailField(null=True, blank=True)
     username = models.CharField()
     isActive = models.BooleanField()
-    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default='NUL')
+    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default=None)
 
     def __str__(self):
         return self.username
     
 class Developer(models.Model):
     id = models.IntegerField(primary_key=True)
-    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default='NUL')
+    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default=None)
     fullName = models.CharField()
     email = models.EmailField(null=True, blank=True)
     username = models.CharField()
@@ -58,11 +58,11 @@ class DefectReport(models.Model):
         CRITICAL = 4, 'Critical'
 
     id = models.IntegerField(primary_key=True)
-    testerId = models.ForeignKey(Tester, on_delete=models.SET_DEFAULT, default='NUL')
+    testerId = models.ForeignKey(Tester, on_delete=models.SET_DEFAULT, default=None)
     title = models.CharField()
     description = models.CharField()
     reproductionSteps = models.CharField()
-    evaluatedById = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default='NUL')
+    evaluatedById = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default=None)
     status = models.CharField(
         choices=Status.choices,
         default=Status.NEW,
@@ -71,8 +71,8 @@ class DefectReport(models.Model):
     priority = models.IntegerField(choices=Priority.choices, default=Priority.LOW)
     submittedAt = models.DateTimeField(auto_now_add=True)
     testerEmail = models.EmailField(null=True, blank=True)
-    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default='NUL')
-    assignedToId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default='NUL')
+    productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default=None)
+    assignedToId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default=None)
 
     def __str__(self):
         return self.title

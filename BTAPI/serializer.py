@@ -25,3 +25,8 @@ class DefectReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = DefectReport
         fields = '__all__'
+
+class ReportLiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DefectReport
+        fields = ['id', 'title', 'status']

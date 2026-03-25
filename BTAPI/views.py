@@ -33,13 +33,7 @@ def post_new_report(request):
 @api_view(['GET'])
 def get_new_reports(request):
     reports = DefectReport.objects.filter(status=DefectReport.Status.NEW)
-    
-    class LiteSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = DefectReport
-            fields = ['id', 'title', 'status']
-            
-    serializer = LiteSerializer(reports, many=True)
+    serializer = ReportLiteSerializer(reports, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
@@ -62,7 +56,7 @@ def get_full_report(request, id):
 @api_view(['PATCH'])
 def patch_update_report(request):
 
-    
+
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
