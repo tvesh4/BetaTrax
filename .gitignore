@@ -4,4 +4,7 @@ __pycache__/
 db.sqlite3
 *.env
 .DS_Store
+<<<<<<< HEAD
 migrations/
+=======
+>>>>>>> b1fd877 (added another item to .gitignore)
