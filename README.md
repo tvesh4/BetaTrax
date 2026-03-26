@@ -16,10 +16,10 @@ Group F of COMP3297 2025-2026 Semester 2
 
 ## API Endpoints Implemented (Sprint 1)
 - `POST /api/defect/` - Submit a new defect report. (PBI-1)
-- `GET /api/defects/{NEW | FIXED}` - Return a list of new reports or fixed reports for PO testing. (PBI-2, PBI-5)
+- `GET /api/defects/{NEW | FIXED}/` - Return a list of new reports or fixed reports for PO testing. (PBI-2, PBI-5)
 - `GET /api/defect/{report_id}/` Returns full report details. (PBI-2)
-- `GET /api/defects/Assigned/dev={dev_id}` Returns all assigned defects for a specific developer. (PBI-3)
-- `PATCH /api/defects/{id}/{new_status}/` Updates report with a new status (PBI-2, PBI-3, PBI-4, PBI-5)
+- `GET /api/defects/Assigned/dev={dev_id}/` Returns all assigned defects for a specific developer. (PBI-3)
+- `PATCH /api/defects/{id}/{new_status}/dev={dev_id}/severity={new_severity}/priority={new_priority}/` Updates report with an assigned developer, new status, severity, and priority (the parameters severity and priority are optional) (PBI-2, PBI-3, PBI-4, PBI-5)
 
 ## Team Members & Contributions
 - **Lam Chin Yui:**

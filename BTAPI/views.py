@@ -44,9 +44,14 @@ def get_full_report(request, id):
     return Response(serializer.data)
 
 @api_view(['PATCH'])
-def patch_update_report(request, id, new_status):
+def patch_update_report(request, id, dev_id, new_status, new_severity=None, new_priority=None):
     report = get_object_or_404(DefectReport, id=id)
     report.status = new_status.casefold()
+    report.assignedToId_id = dev_id
+    if new_severity:
+        report.severity = new_severity
+    if new_priority:
+        report.priority = new_priority
     report.save()
     if report and getattr(report, 'testerEmail', None):
         send_status_update_email(report)
