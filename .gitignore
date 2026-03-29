@@ -4,8 +4,4 @@ __pycache__/
 db.sqlite3
 *.env
 .DS_Store
-migrations/
-CLAUDE.md
-session.txt
-BetaTrax_Sprint_1_v2.txt
-**/.DS_Store
+email/
