@@ -23,7 +23,7 @@ Group F of COMP3297 2025-2026 Semester 2
 
 ## API Endpoints Implemented (Sprint 1)
 - `POST /api/defect/` — Submit a new defect report (PBI-1)
-- `GET /api/defects/{status}/` — List reports by status; currently supports `New`, `Open`, `Fixed`, and `All` for listing all reports (PBI-2, PBI-5)
+- `GET /api/defects/{status}/` — List reports by status; currently supports `New`, `Open`, `Assigned`, `Fixed`, and `All` for listing all reports (PBI-2, PBI-5)
 - `GET /api/defect/{report_id}/` — Full details of a specific report (PBI-2)
 - `GET /api/defects/Assigned/dev={dev_id}/` — List all ASSIGNED defects for a specific developer (PBI-3)
 - `PATCH /api/defects/{id}/{new_status}/dev={dev_id}/` — Update report status and assigned developer; optional suffixes: `/severity={Low, Minor Major, Critical}/` and/or `/priority={Low, Medium, High, Critical}/` (PBI-2, PBI-3, PBI-4, PBI-5)
