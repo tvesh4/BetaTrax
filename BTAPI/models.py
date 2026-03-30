@@ -41,21 +41,21 @@ class Product(models.Model):
 
 class DefectReport(models.Model):
     class Status(models.TextChoices):
-        NEW = 'NEW', 'New'
-        OPEN = 'OPEN', 'Open'
-        ASSIGNED = 'ASSIGNED', 'Assigned'
-        FIXED = 'FIXED', 'Fixed'
-        RESOLVED = 'RESOLVED', 'Resolved'
-    class Severity(models.IntegerChoices): 
-        LOW = 1, 'Low'
-        MINOR = 2, 'Minor'
-        MAJOR = 3, 'Major'
-        CRITICAL = 4, 'Critical'
-    class Priority(models.IntegerChoices): 
-        LOW = 1, 'Low'
-        MEDIUM = 2, 'Medium'
-        HIGH = 3, 'High'
-        CRITICAL = 4, 'Critical'
+        NEW = 'New', 'New'
+        OPEN = 'Open', 'Open'
+        ASSIGNED = 'Assigned', 'Assigned'
+        FIXED = 'Fixed', 'Fixed'
+        RESOLVED = 'Resolved', 'Resolved'
+    class Severity(models.TextChoices): 
+        LOW = 'Low', 'Low'
+        MINOR = 'Minor', 'Minor'
+        MAJOR = 'Major', 'Major'
+        CRITICAL = 'Critical', 'Critical'
+    class Priority(models.TextChoices): 
+        LOW = 'Low', 'Low'
+        MEDIUM = 'Medium', 'Medium'
+        HIGH = 'High', 'High'
+        CRITICAL = 'Critical', 'Critical'
 
     id = models.CharField(primary_key=True)
     productId = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default=None)
@@ -70,10 +70,10 @@ class DefectReport(models.Model):
         choices=Status.choices,
         default=Status.NEW,
     )
-    severity = models.IntegerField(choices=Severity.choices, null=True, blank=True)
-    priority = models.IntegerField(choices=Priority.choices, null=True, blank=True)
+    severity = models.CharField(choices=Severity.choices, null=True, blank=True)
+    priority = models.CharField(choices=Priority.choices, null=True, blank=True)
     evaluatedById = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
     assignedToId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
 
     def __str__(self):
-        return self.title
+        return self.id
