@@ -25,6 +25,8 @@ def get_reports(request, status):
         reports = DefectReport.objects.filter(status=DefectReport.Status.FIXED)
     elif status.casefold() == "OPEN".casefold():
         reports = DefectReport.objects.filter(status=DefectReport.Status.OPEN)
+    elif status.casefold() == "ASSIGNED".casefold():
+        reports = DefectReport.objects.filter(status=DefectReport.Status.ASSIGNED)
     elif status.casefold() == "ALL".casefold():
         reports = DefectReport.objects.all()
     serializer = ReportLiteSerializer(reports, many=True)
@@ -48,10 +50,11 @@ def get_full_report(request, id):
     return Response(serializer.data)
 
 @api_view(['PATCH'])
-def patch_update_report(request, id, dev_id, new_status, new_severity=None, new_priority=None):
+def patch_update_report(request, id, new_status, dev_id=None, new_severity=None, new_priority=None):
     report = get_object_or_404(DefectReport, id=id)
     report.status = new_status
-    report.assignedToId_id = dev_id
+    if dev_id: 
+        report.assignedToId_id = dev_id
     if new_severity:
         report.severity = new_severity
     if new_priority:
