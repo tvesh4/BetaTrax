@@ -26,7 +26,7 @@ Group F of COMP3297 2025-2026 Semester 2
 - `GET /api/defects/{status}/` — List reports by status; currently supports `New`, `Open`, `Assigned`, `Fixed`, and `All` for listing all reports (PBI-2, PBI-5)
 - `GET /api/defect/{report_id}/` — Full details of a specific report (PBI-2)
 - `GET /api/defects/Assigned/dev={dev_id}/` — List all ASSIGNED defects for a specific developer (PBI-3)
-- `PATCH /api/defects/{id}/{new_status}/` — Update report status and assigned developer; optional suffixes: `/dev={dev_id}/`, `/severity={Low, Minor Major, Critical}/` and/or `/priority={Low, Medium, High, Critical}/` (PBI-2, PBI-3, PBI-4, PBI-5)
+- `PATCH /api/defect/{id}/{new_status}/` — Update report status and assigned developer; optional suffixes: `/dev={dev_id}/`, `/severity={Low, Minor Major, Critical}/` and/or `/priority={Low, Medium, High, Critical}/` (PBI-2, PBI-3, PBI-4, PBI-5)
 
 ## Team Members & Contributions
 - **Lam Chin Yui: Product Backlog, Partial Domain Model**

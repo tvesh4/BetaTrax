@@ -52,12 +52,13 @@ def get_full_report(request, id):
 @api_view(['PATCH'])
 def patch_update_report(request, id, new_status, dev_id=None, new_severity=None, new_priority=None):
     report = get_object_or_404(DefectReport, id=id)
-    report.status = new_status
+    if new_status in DefectReport.Status:
+        report.status = new_status
     if dev_id: 
         report.assignedToId_id = dev_id
-    if new_severity:
+    if new_severity and new_severity in DefectReport.Severity:
         report.severity = new_severity
-    if new_priority:
+    if new_priority and new_priority in DefectReport.Priority:
         report.priority = new_priority
     report.save()
     if report and getattr(report, 'testerEmail', None):
