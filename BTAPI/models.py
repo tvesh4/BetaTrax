@@ -1,11 +1,11 @@
 from django.db import models
 
-class Tester(models.Model):
-    id = models.CharField(primary_key=True)
-    email = models.EmailField(null=True, blank=True, unique=True)
+# class Tester(models.Model):
+#     id = models.CharField(primary_key=True)
+#     email = models.EmailField(null=True, blank=True, unique=True)
 
-    def __str__(self):
-        return self.id
+#     def __str__(self):
+#         return self.id
     
 class ProductOwner(models.Model):
     id = models.CharField(primary_key=True)
@@ -63,7 +63,7 @@ class DefectReport(models.Model):
     title = models.CharField()
     description = models.CharField()
     reproductionSteps = models.CharField()
-    testerId = models.ForeignKey(Tester, on_delete=models.SET_DEFAULT, default=None)
+    testerId = models.CharField()
     testerEmail = models.EmailField(null=True, blank=True)
     submittedAt = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
@@ -72,7 +72,7 @@ class DefectReport(models.Model):
     )
     severity = models.CharField(choices=Severity.choices, null=True, blank=True)
     priority = models.CharField(choices=Priority.choices, null=True, blank=True)
-    evaluatedById = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
+    # evaluatedById = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
     assignedToId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
 
     def __str__(self):
