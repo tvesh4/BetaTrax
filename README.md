@@ -2,9 +2,12 @@
 Group F of COMP3297 2025-2026 Semester 2
 
 ## Setup & Installation
-1. Set up virtual environment: python3 -m venv venv
-2. Install required pip packages in venv: pip install -r requirements.txt
-3. Start django server: python3 manage.py runserver
+1. Create and activate virtual environment:
+   `python3 -m venv venv`
+   `source venv/bin/activate`
+2. Install dependencies: `pip install -r requirements.txt`
+3. Apply migrations: `python3 manage.py migrate`
+4. Start the development server: `python3 manage.py runserver`
 
 ## Key Assumptions for Sprint 1 Executable
 - This increment is configured for 1 product. A default product (e.g., with ID "PROD-1") must be created via the Django Admin interface before use. All submitted defect reports are associated with this product.
@@ -30,7 +33,7 @@ Group F of COMP3297 2025-2026 Semester 2
 - `GET /api/reports/assigned/<dev_id>/` - View all active tasks for a specific developer. (PBI-3)
 
 ## Team Members & Contributions
-- **Lam Chin Yui:**
-- **Lai Tsz Ng:** 
-- **Wang Yam Yuk:**
-- **Kumar Tvesha Sanjay:** 
+- **Lam Chin Yui: Product Backlog, Partial Domain Model**
+- **Lai Tsz Ng: Communications, UI Storyboards, Source Code**
+- **Wang Yam Yuk: UI Storyboards, Source Code**
+- **Kumar Tvesha Sanjay: Product Backlog, Partial Domain Model**
