@@ -19,16 +19,17 @@ def post_new_report(request):
 
 @api_view(['GET'])
 def get_reports(request, status):
-    if status.casefold() == "NEW".casefold():
-        reports = DefectReport.objects.filter(status=DefectReport.Status.NEW)
-    elif status.casefold() == "FIXED".casefold():
-        reports = DefectReport.objects.filter(status=DefectReport.Status.FIXED)
-    elif status.casefold() == "OPEN".casefold():
-        reports = DefectReport.objects.filter(status=DefectReport.Status.OPEN)
-    elif status.casefold() == "ASSIGNED".casefold():
-        reports = DefectReport.objects.filter(status=DefectReport.Status.ASSIGNED)
-    elif status.casefold() == "ALL".casefold():
-        reports = DefectReport.objects.all()
+    match status.upper():
+        case "NEW":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.NEW)
+        case "FIXED":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.FIXED)
+        case "OPEN":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.OPEN)
+        case "ASSIGNED":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.ASSIGNED)
+        case "ALL":
+            reports = DefectReport.objects.all()
     serializer = ReportLiteSerializer(reports, many=True)
     return Response(serializer.data)
 
