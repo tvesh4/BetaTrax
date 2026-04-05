@@ -1,12 +1,14 @@
 from rest_framework import serializers
 from .models import *
+from django.contrib.auth.models import User
 
-class TesterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tester
-        fields = '__all__'
+# class TesterSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Tester
+#         fields = '__all__'
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(serializers.ModelSerializer): #pbi 6 - sprint 2 allows PO to register product by API
+    owner = serializers.ReadOnlyField(source='owner.username')
     class Meta:
         model = Product
         fields = ['id', 'displayName', 'description', 'currentVersion', 'isActiveBeta']
@@ -22,9 +24,20 @@ class DeveloperSerializer(serializers.ModelSerializer):
         fields = ['id', 'productId', 'fullName', 'email', 'username', 'isActive']
 
 class DefectReportSerializer(serializers.ModelSerializer):
+    # sprint 2 pbi 7 duplicate parent link
     class Meta:
         model = DefectReport
         fields = '__all__'
+        read_only_fields = ['status'] # status to be changed thru custom actions
+
+    def validate(self, data):
+        
+        # sprint2: ensuring a report cannot be its own parent
+        
+        if data.get('parent_report') and self.instance:
+            if data['parent_report'].id == self.instance.id:
+                raise serializers.ValidationError("A report cannot be a duplicate of itself.")
+        return data
 
 class ReportLiteSerializer(serializers.ModelSerializer):
     class Meta:
