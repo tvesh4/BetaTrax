@@ -27,6 +27,7 @@ Group F of COMP3297 2025-2026 Semester 2
 
 ## API Endpoints Implemented 
 - `POST /api/products/` - Register a new product. (PBI-5)
+- `POST /api/comment/<id>/` - Post a new comment on a defect report.
 - `POST /api/defects/` - Submit a new defect report. (PBI-1)
 - `GET /api/reports/` - List reports with support for `?status=` filtering (including NEW, OPEN, ASSIGNED, FIXED, RESOLVED, REOPENED, and CLOSED). (PBI-10)
 - `PATCH /api/reports/<id>/` - Update report status, severity, priority, or link a parent duplicate. (PBI-6, 7, 8, 9)
