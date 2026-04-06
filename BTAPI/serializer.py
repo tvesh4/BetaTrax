@@ -8,10 +8,10 @@ from django.contrib.auth.models import User
 #         fields = '__all__'
 
 class ProductSerializer(serializers.ModelSerializer): #pbi 6 - sprint 2 allows PO to register product by API
-    owner = serializers.ReadOnlyField(source='owner.username')
+    # owner = serializers.ReadOnlyField(source='owner.username')
     class Meta:
         model = Product
-        fields = ['id', 'displayName', 'description', 'currentVersion', 'isActiveBeta']
+        fields = ['id', 'displayName', 'description', 'currentVersion', 'isActiveBeta', 'ownerId']
 
 class ProductOwnerSerializer(serializers.ModelSerializer):
     class Meta:
