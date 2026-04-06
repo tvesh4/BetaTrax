@@ -43,8 +43,12 @@ class DefectReport(models.Model):
     class Status(models.TextChoices):
         NEW = 'New', 'New'
         OPEN = 'Open', 'Open'
+        REJECTED = 'Rejected', 'Rejected'
+        DUPLICATE = 'Duplicate', 'Duplicate'
         ASSIGNED = 'Assigned', 'Assigned'
+        CANNOT_REPRODUCE = 'CannotReproduce', 'CannotReproduce'
         FIXED = 'Fixed', 'Fixed'
+        REOPENED = 'Reopened', 'Reopened'
         RESOLVED = 'Resolved', 'Resolved'
     class Severity(models.TextChoices): 
         LOW = 'Low', 'Low'
