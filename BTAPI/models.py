@@ -77,3 +77,21 @@ class DefectReport(models.Model):
 
     def __str__(self):
         return self.id
+    
+class Comment(models.Model):
+    id = models.CharField(primary_key=True)
+    content = models.CharField()
+    createdAt = models.DateTimeField(auto_now_add=True)
+    defectReportId = models.ForeignKey(
+        'DefectReport', 
+        on_delete=models.CASCADE, 
+        related_name='comments'
+    )
+    authorId = models.CharField()
+    # authorType = ?
+
+    class Meta:
+        ordering = ['-createdAt']
+    
+    def __str__(self):
+        return self.id

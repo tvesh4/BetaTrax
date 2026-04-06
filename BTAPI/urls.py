@@ -14,5 +14,5 @@ urlpatterns = [
     path('defect/<str:id>/<str:new_status>/severity=<str:new_severity>/', patch_update_report, name='patch_update_report'),
     path('defect/<str:id>/<str:new_status>/priority=<str:new_priority>/', patch_update_report, name='patch_update_report'),
     path('defect/<str:id>/<str:new_status>/', patch_update_report, name='patch_update_report'),
-    # path('defect/<str:id>/comment/', post_comment, name='post_comment'),
+    path('comment/<str:id>/', post_comment, name='post_comment'),
 ]

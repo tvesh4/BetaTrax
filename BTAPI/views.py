@@ -79,7 +79,12 @@ def patch_update_report(request, id, new_status, dev_id=None, new_severity=None,
     serializer = DefectReportSerializer(report)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-# @api_view(['POST'])
-# def post_comment(request): 
-#     return Response(status=status.HTTP_400_BAD_REQUEST)
+@api_view(['POST'])
+def post_comment(request, id): 
+    report = get_object_or_404(DefectReport, id=id)
+    serializer = CommentSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(defectReportId=report)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

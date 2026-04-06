@@ -23,8 +23,14 @@ class DeveloperSerializer(serializers.ModelSerializer):
         model = Developer
         fields = ['id', 'productId', 'fullName', 'email', 'username', 'isActive']
 
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['id', 'authorId', 'content', 'createdAt']
+
 class DefectReportSerializer(serializers.ModelSerializer):
     # sprint 2 pbi 7 duplicate parent link
+    comments = CommentSerializer(many=True, read_only=True)
     class Meta:
         model = DefectReport
         fields = '__all__'
@@ -43,3 +49,4 @@ class ReportLiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = DefectReport
         fields = ['id', 'title', 'status']
+
