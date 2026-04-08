@@ -30,8 +30,9 @@ Group F of COMP3297 2025-2026 Semester 2
 - `POST /api/comment/<id>/` - Post a new comment on a defect report.
 - `POST /api/defect/` - Submit a new defect report. (PBI-1)
 - `GET /api/reports/` - List reports with support for `?status=` filtering (including NEW, OPEN, ASSIGNED, FIXED, RESOLVED, REOPENED, and CLOSED). (PBI-10)
-- `PATCH /api/defect/<id>/` - Update report status, severity, priority, or link a parent duplicate. (PBI-6, 7, 8, 9)
+- `PATCH /api/update/<id>/` - Update report status, severity, priority, or link a parent duplicate. (PBI-6, 7, 8, 9)
 - `GET /api/reports/assigned/<dev_id>/` - View all active tasks for a specific developer. (PBI-3)
+- `GET /api/defect/<id>/` - View full detail of a specific defect report. 
 
 ## Team Members & Contributions
 - **Lam Chin Yui: Product Backlog, Partial Domain Model**

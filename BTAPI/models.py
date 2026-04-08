@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 # class Tester(models.Model):
 #     id = models.CharField(primary_key=True)
@@ -43,10 +44,8 @@ class DefectReport(models.Model):
     class Status(models.TextChoices):
         NEW = 'New', 'New'
         OPEN = 'Open', 'Open'
-        REJECTED = 'Rejected', 'Rejected'
-        DUPLICATE = 'Duplicate', 'Duplicate'
         ASSIGNED = 'Assigned', 'Assigned'
-        CANNOT_REPRODUCE = 'CannotReproduce', 'CannotReproduce'
+        CLOSED = 'Closed', 'Closed' # Cannot Reproduce, Duplicate, Rejected
         FIXED = 'Fixed', 'Fixed'
         REOPENED = 'Reopened', 'Reopened'
         RESOLVED = 'Resolved', 'Resolved'
@@ -78,6 +77,18 @@ class DefectReport(models.Model):
     priority = models.CharField(choices=Priority.choices, null=True, blank=True)
     # evaluatedById = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
     assignedToId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
+    parent = models.ForeignKey(
+        'self', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='children'
+    )
+
+    def clean(self):
+        if self.parent and self.id and self.parent.id == self.id:
+            raise ValidationError("A report cannot be its own parent.")
+        super().clean()
 
     def __str__(self):
         return self.id

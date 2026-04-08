@@ -31,17 +31,19 @@ class CommentSerializer(serializers.ModelSerializer):
 class DefectReportSerializer(serializers.ModelSerializer):
     # sprint 2 pbi 7 duplicate parent link
     comments = CommentSerializer(many=True, read_only=True)
+    children = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    parent = serializers.PrimaryKeyRelatedField(queryset=DefectReport.objects.all(), required=False)
     class Meta:
         model = DefectReport
         fields = '__all__'
-        read_only_fields = ['status'] # status to be changed thru custom actions
+        read_only_fields = ['status', 'parent', 'children'] # status to be changed thru custom actions
 
     def validate(self, data):
         
         # sprint2: ensuring a report cannot be its own parent
         
-        if data.get('parent_report') and self.instance:
-            if data['parent_report'].id == self.instance.id:
+        if data.get('parent') and self.instance:
+            if data['parent'].id == self.instance.id:
                 raise serializers.ValidationError("A report cannot be a duplicate of itself.")
         return data
 
