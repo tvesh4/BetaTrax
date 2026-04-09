@@ -58,41 +58,67 @@ def patch_update_report(request, id):
     new_priority = request.query_params.get('priority')
     new_parent = request.query_params.get('parent')
     # dev_id = request.query_params.get('dev')
-  
     report = get_object_or_404(DefectReport, id=id)
     if new_status in DefectReport.Status:
         match report.status:
             case 'New':
-                if new_status == 'Open' or new_status == 'Closed': # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
+                 # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
+                if new_status == 'Open' or new_status == 'Closed':
                     report.status = new_status
-                    if new_parent and new_status == 'Closed':
-                        new_parent_id = get_object_or_404(DefectReport, id=new_parent)
-                        report.parent_id = new_parent_id
-            case 'Open':
+                    if new_status == 'Closed':
+                        if new_parent:
+                            new_parent_id = get_object_or_404(DefectReport, id=new_parent)
+                            report.parent_id = new_parent_id
+                            if getattr(new_parent, 'testerEmail', None):
+                                send_duplicate_update_email(new_parent, "parent", report)
+                                send_duplicate_update_email(report, "child", new_parent)
+                        if report.parent:
+                            if getattr(report.parent, 'testerEmail', None):
+                                send_duplicate_update_email(report.parent, "parent", report)
+                                send_duplicate_update_email(report, "child", report.parent)
+            case ('Open', 'Reopened'):
                 if new_status == 'Assigned':
                     report.status = new_status
             case 'Assigned':
-                if new_status == 'Fixed' or new_status == 'Closed': # only if role == "Developer"
+                # only if role == "Developer"
+                if new_status == 'Fixed' or new_status == 'Closed':
                     report.status = new_status
-                    if new_parent and new_status == 'Closed':
-                        new_parent_id = get_object_or_404(DefectReport, id=new_parent)
-                        report.parent_id = new_parent_id
+                    if new_status == 'Closed':
+                        if new_parent:
+                            new_parent_id = get_object_or_404(DefectReport, id=new_parent)
+                            report.parent_id = new_parent_id
+                            if getattr(new_parent, 'testerEmail', None):
+                                send_duplicate_update_email(new_parent, "parent", report)
+                                send_duplicate_update_email(report, "child", new_parent)
+                        if report.parent:
+                            if getattr(report.parent, 'testerEmail', None):
+                                send_duplicate_update_email(report.parent, "parent", report)
+                                send_duplicate_update_email(report, "child", report.parent)
             case 'Fixed':
-                if new_status == 'Resolved': # only if role == "ProductOwner"
+                # only if role == "ProductOwner"
+                if new_status == 'Resolved':
                     report.status = new_status
-                if new_status == 'Reopened': # only if role == "Tester" or role == "ProductOwner"
+                # only if role == "Tester" or role == "ProductOwner"
+                if new_status == 'Reopened':
                     pass
             case 'Reopened':
                 pass
-    # if dev_id: 
-    #     report.assignedToId_id = dev_id
-    if new_severity and new_severity in DefectReport.Severity:
-        report.severity = new_severity
-    if new_priority and new_priority in DefectReport.Priority:
-        report.priority = new_priority
-    report.save()
     if report and getattr(report, 'testerEmail', None):
         send_status_update_email(report)
+    if report.children:
+        for child in report.children.all():
+            getattr(child, 'testerEmail', None)
+            send_children_update_email(child)
+
+    # if dev_id: 
+    #     report.assignedToId_id = dev_id
+    if new_severity: 
+        if new_severity in DefectReport.Severity:
+            report.severity = new_severity
+    if new_priority: 
+        if new_priority in DefectReport.Priority:
+            report.priority = new_priority
+    report.save()
     serializer = DefectReportSerializer(report)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
