@@ -62,7 +62,7 @@ def patch_update_report(request, id):
     if new_status and new_status in DefectReport.Status:
         match report.status:
             case 'New':
-                 # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
+                # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
                 if new_status == 'Open' or new_status == 'Closed':
                     report.status = new_status
                     if new_status == 'Closed':
@@ -91,13 +91,14 @@ def patch_update_report(request, id):
                 # only if role == "Tester" or role == "ProductOwner"
                 elif new_status == 'Reopened':
                     report.status = new_status
-                    
     if report and getattr(report, 'testerEmail', None):
         send_status_update_email(report)
     if report.children:
         for child in report.children.all():
             getattr(child, 'testerEmail', None)
             send_children_update_email(child)
+    if report.productId.ownerId and getattr(report.productId.ownerId, 'email', None):
+        send_po_update_email(report)
 
     # if dev_id: 
     #     report.assignedToId_id = dev_id

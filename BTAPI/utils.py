@@ -25,6 +25,31 @@ def send_status_update_email(report):
     except Exception as e:
         print(f"Failed to write email to file: {e}")
         return False
+
+def send_po_update_email(report):
+    subject = f"Update on Defect Report #{report.id}: {report.title}"
+    message = (
+        f"Hello Product Owner,\n\n"
+        f"The status of the report '{report.title}' has been updated to: \n\n"
+        f"{report.get_status_display()}\n\n"
+        f"View details at: http://127.0.0.1:8000/api/defect/{report.id}/\n\n"
+        f"Best,\n\n"
+        f"BetaTrax Team"
+    )
+    recipient = report.productId.ownerId.email
+    recipient_list = [recipient]
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            recipient_list,
+            fail_silently=False,
+        )
+        return True
+    except Exception as e:
+        print(f"Failed to write email to file: {e}")
+        return False
     
 def send_duplicate_update_email(report, dup_report):
     subject = f"Update on Defect Report #{report.id}: {report.title}"
