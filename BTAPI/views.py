@@ -59,7 +59,7 @@ def patch_update_report(request, id):
     new_parent = request.query_params.get('parent')
     # dev_id = request.query_params.get('dev')
     report = get_object_or_404(DefectReport, id=id)
-    if new_status in DefectReport.Status:
+    if new_status and new_status in DefectReport.Status:
         match report.status:
             case 'New':
                  # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
@@ -70,39 +70,28 @@ def patch_update_report(request, id):
                             new_parent_id = get_object_or_404(DefectReport, id=new_parent)
                             report.parent_id = new_parent_id
                             if getattr(new_parent, 'testerEmail', None):
-                                send_duplicate_update_email(new_parent, "parent", report)
-                                send_duplicate_update_email(report, "child", new_parent)
+                                send_duplicate_update_email(new_parent, report)
+                                send_duplicate_update_email(report, new_parent)
                         if report.parent:
                             if getattr(report.parent, 'testerEmail', None):
-                                send_duplicate_update_email(report.parent, "parent", report)
-                                send_duplicate_update_email(report, "child", report.parent)
+                                send_duplicate_update_email(report.parent, report)
+                                send_duplicate_update_email(report, report.parent)
             case ('Open', 'Reopened'):
+                # only if role == "Developer"
                 if new_status == 'Assigned':
                     report.status = new_status
             case 'Assigned':
-                # only if role == "Developer"
+                # only if role == "Developer", 'Closed' = Cannot Reproduce
                 if new_status == 'Fixed' or new_status == 'Closed':
                     report.status = new_status
-                    if new_status == 'Closed':
-                        if new_parent:
-                            new_parent_id = get_object_or_404(DefectReport, id=new_parent)
-                            report.parent_id = new_parent_id
-                            if getattr(new_parent, 'testerEmail', None):
-                                send_duplicate_update_email(new_parent, "parent", report)
-                                send_duplicate_update_email(report, "child", new_parent)
-                        if report.parent:
-                            if getattr(report.parent, 'testerEmail', None):
-                                send_duplicate_update_email(report.parent, "parent", report)
-                                send_duplicate_update_email(report, "child", report.parent)
             case 'Fixed':
                 # only if role == "ProductOwner"
                 if new_status == 'Resolved':
                     report.status = new_status
                 # only if role == "Tester" or role == "ProductOwner"
-                if new_status == 'Reopened':
-                    pass
-            case 'Reopened':
-                pass
+                elif new_status == 'Reopened':
+                    report.status = new_status
+                    
     if report and getattr(report, 'testerEmail', None):
         send_status_update_email(report)
     if report.children:
