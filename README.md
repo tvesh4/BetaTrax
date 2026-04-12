@@ -33,6 +33,7 @@ Group F of COMP3297 2025-2026 Semester 2
 - `PATCH /api/update/<str:id>/` - Update report status, severity, priority, or link a parent duplicate. (PBI-6, 7, 8, 9)
 - `GET /api/reports/assigned/<str:dev_id>/` - View all active tasks for a specific developer. (PBI-3)
 - `GET /api/defect/<str:id>/` - View full detail of a specific defect report. 
+- `POST /api/token/` - User login
 
 ## Team Members & Contributions
 - **Lam Chin Yui: Product Backlog, Partial Domain Model**
