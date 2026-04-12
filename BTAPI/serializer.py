@@ -8,12 +8,11 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 #         model = Tester
 #         fields = '__all__'
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # Add custom claims (roles)
         token['username'] = user.username
         token['is_owner'] = user.groups.filter(name='Owner').exists()
         token['is_developer'] = user.groups.filter(name='Developer').exists()

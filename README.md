@@ -7,6 +7,7 @@ Group F of COMP3297 2025-2026 Semester 2
    `source venv/bin/activate`
 2. Install dependencies: `pip install -r requirements.txt`
 3. Apply migrations: `python3 manage.py migrate`
+4. Load user groups `python3 manage.py loaddata groups.json`
 4. Start the development server: `python3 manage.py runserver`
 
 ## Key Assumptions for Sprint 1 Executable
