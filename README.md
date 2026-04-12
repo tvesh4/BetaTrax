@@ -8,7 +8,7 @@ Group F of COMP3297 2025-2026 Semester 2
 2. Install dependencies: `pip install -r requirements.txt`
 3. Apply migrations: `python3 manage.py migrate`
 4. Load user groups `python3 manage.py loaddata groups.json`
-4. Start the development server: `python3 manage.py runserver`
+5. Start the development server: `python3 manage.py runserver`
 
 ## Key Assumptions for Sprint 1 Executable
 - This increment is configured for 1 product. A default product (e.g., with ID "PROD-1") must be created via the Django Admin interface before use. All submitted defect reports are associated with this product.
