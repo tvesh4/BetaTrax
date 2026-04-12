@@ -1,11 +1,24 @@
 from rest_framework import serializers
 from .models import *
 from django.contrib.auth.models import User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # class TesterSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Tester
 #         fields = '__all__'
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims (roles)
+        token['username'] = user.username
+        token['is_owner'] = user.groups.filter(name='Owner').exists()
+        token['is_developer'] = user.groups.filter(name='Developer').exists()
+
+        return token
 
 class ProductSerializer(serializers.ModelSerializer): #pbi 6 - sprint 2 allows PO to register product by API
     # owner = serializers.ReadOnlyField(source='owner.username')

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -119,13 +120,16 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
     'DEFAULT_RENDERER_CLASSES': (
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-
         'rest_framework.renderers.JSONRenderer',
-        
-        # 'rest_framework.renderers.BrowsableAPIRenderer',
     )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60)
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'

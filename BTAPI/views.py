@@ -1,12 +1,15 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsUser, IsDeveloper, IsOwner
 from .models import *
 from .serializer import *
 from django.shortcuts import get_object_or_404
 from .utils import *
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, IsUser])
 def post_new_report(request): 
     data = request.data 
     serializer = DefectReportSerializer(data=data)
@@ -18,6 +21,7 @@ def post_new_report(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, IsUser])
 def get_reports(request, status):
     match status.upper():
         case "NEW":
@@ -34,6 +38,7 @@ def get_reports(request, status):
     return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, IsDeveloper | IsOwner])
 def get_assigned_defects(request, id):
     reports = DefectReport.objects.filter(
         status=DefectReport.Status.ASSIGNED,
@@ -45,12 +50,14 @@ def get_assigned_defects(request, id):
     return Response(data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, IsUser])
 def get_full_report(request, id):
     report = get_object_or_404(DefectReport, pk=id)
     serializer = DefectReportSerializer(report)
     return Response(serializer.data)
 
 @api_view(['PATCH'])
+@permission_classes([IsAuthenticated, IsUser | IsOwner | IsDeveloper])
 def patch_update_report(request, id):  
     
     new_status = request.query_params.get('status')
@@ -59,11 +66,15 @@ def patch_update_report(request, id):
     new_parent = request.query_params.get('parent')
     # dev_id = request.query_params.get('dev')
     report = get_object_or_404(DefectReport, id=id)
+    user = request.user
+    is_owner = user.groups.filter(name='Owner').exists()
+    is_developer = user.groups.filter(name='Developer').exists()
+
     if new_status and new_status in DefectReport.Status:
         match report.status:
             case 'New':
                 # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
-                if new_status == 'Open' or new_status == 'Closed':
+                if is_owner and (new_status == 'Open' or new_status == 'Closed'):
                     report.status = new_status
                     if new_status == 'Closed':
                         if new_parent:
@@ -76,20 +87,20 @@ def patch_update_report(request, id):
                             if getattr(report.parent, 'testerEmail', None):
                                 send_duplicate_update_email(report.parent, report)
                                 send_duplicate_update_email(report, report.parent)
-            case ('Open', 'Reopened'):
+            case ('Open' | 'Reopened'):
                 # only if role == "Developer"
-                if new_status == 'Assigned':
+                if is_developer and new_status == 'Assigned':
                     report.status = new_status
             case 'Assigned':
                 # only if role == "Developer", 'Closed' = Cannot Reproduce
-                if new_status == 'Fixed' or new_status == 'Closed':
+                if is_developer and new_status == 'Fixed' or new_status == 'Closed':
                     report.status = new_status
             case 'Fixed':
                 # only if role == "ProductOwner"
-                if new_status == 'Resolved':
+                if is_owner and new_status == 'Resolved':
                     report.status = new_status
                 # only if role == "Tester" or role == "ProductOwner"
-                elif new_status == 'Reopened':
+                elif (not is_developer) and new_status == 'Reopened':
                     report.status = new_status
     if report and getattr(report, 'testerEmail', None):
         send_status_update_email(report)
@@ -113,6 +124,7 @@ def patch_update_report(request, id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, IsUser])
 def post_comment(request, id): 
     report = get_object_or_404(DefectReport, id=id)
     serializer = CommentSerializer(data=request.data)
@@ -122,6 +134,7 @@ def post_comment(request, id):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, IsOwner | IsDeveloper])
 def post_new_product(request): 
     data = request.data 
     serializer = ProductSerializer(data=data)

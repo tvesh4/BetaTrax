@@ -27,12 +27,12 @@ Group F of COMP3297 2025-2026 Semester 2
 
 ## API Endpoints Implemented 
 - `POST /api/products/` - Register a new product. (PBI-5)
-- `POST /api/comment/<id>/` - Post a new comment on a defect report. (PBI-6 in Sprint 1)
+- `POST /api/comment/<str:id>/` - Post a new comment on a defect report. (PBI-6 in Sprint 1)
 - `POST /api/defect/` - Submit a new defect report. (PBI-1)
-- `GET /api/reports/` - List reports with support for `?status=` filtering (including NEW, OPEN, ASSIGNED, FIXED, RESOLVED, REOPENED, and CLOSED). (PBI-10)
-- `PATCH /api/update/<id>/` - Update report status, severity, priority, or link a parent duplicate. (PBI-6, 7, 8, 9)
-- `GET /api/reports/assigned/<dev_id>/` - View all active tasks for a specific developer. (PBI-3)
-- `GET /api/defect/<id>/` - View full detail of a specific defect report. 
+- `GET /api/reports/<str:status>/` - List reports with support for status filtering (including NEW, OPEN, ASSIGNED, FIXED, RESOLVED, REOPENED, and CLOSED). (PBI-10)
+- `PATCH /api/update/<str:id>/` - Update report status, severity, priority, or link a parent duplicate. (PBI-6, 7, 8, 9)
+- `GET /api/reports/assigned/<str:dev_id>/` - View all active tasks for a specific developer. (PBI-3)
+- `GET /api/defect/<str:id>/` - View full detail of a specific defect report. 
 
 ## Team Members & Contributions
 - **Lam Chin Yui: Product Backlog, Partial Domain Model**
