@@ -9,25 +9,25 @@ from django.conf import settings
 #     def __str__(self):
 #         return self.id
     
-class ProductOwner(models.Model):
-    id = models.CharField(primary_key=True)
-    fullName = models.CharField()
-    email = models.EmailField(null=True, blank=True)
-    username = models.CharField()
-    isActive = models.BooleanField()
+# class ProductOwner(models.Model):
+#     id = models.CharField(primary_key=True)
+#     fullName = models.CharField()
+#     email = models.EmailField(null=True, blank=True)
+#     username = models.CharField()
+#     isActive = models.BooleanField()
 
-    def __str__(self):
-        return self.id
+#     def __str__(self):
+#         return self.id
     
-class Developer(models.Model):
-    id = models.CharField(primary_key=True)
-    fullName = models.CharField()
-    email = models.EmailField(null=True, blank=True)
-    username = models.CharField()
-    isActive = models.BooleanField()
+# class Developer(models.Model):
+#     id = models.CharField(primary_key=True)
+#     fullName = models.CharField()
+#     email = models.EmailField(null=True, blank=True)
+#     username = models.CharField()
+#     isActive = models.BooleanField()
 
-    def __str__(self):
-        return self.id
+#     def __str__(self):
+#         return self.id
     
 class Product(models.Model):
     id = models.CharField(primary_key=True)

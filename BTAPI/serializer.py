@@ -28,21 +28,21 @@ class ProductSerializer(serializers.ModelSerializer): #pbi 6 - sprint 2 allows P
         #     'ownerId': {'read_only': True}
         # }
 
-class ProductOwnerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductOwner
-        fields = ['id', 'fullName', 'email', 'username', 'isActive', 'productId']
+# class ProductOwnerSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = ProductOwner
+#         fields = ['id', 'fullName', 'email', 'username', 'isActive', 'productId']
 
-class DeveloperSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Developer
-        fields = ['id', 'productId', 'fullName', 'email', 'username', 'isActive']
+# class DeveloperSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Developer
+#         fields = ['id', 'productId', 'fullName', 'email', 'username', 'isActive']
 
 class CommentSerializer(serializers.ModelSerializer):
     authorUsername = serializers.ReadOnlyField(source='authorId.username')
     class Meta:
         model = Comment
-        fields = ['id', 'author_username', 'content', 'createdAt']
+        fields = ['id', 'authorUsername', 'content', 'createdAt']
         extra_kwargs = {
             'authorId': {'read_only': True}
         }
