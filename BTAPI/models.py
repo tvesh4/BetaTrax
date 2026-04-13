@@ -35,8 +35,18 @@ class Product(models.Model):
     description = models.CharField()
     currentVersion = models.CharField()
     isActiveBeta = models.BooleanField()
-    ownerId = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
-    devId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
+    ownerId = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='ownerId',
+        null=True, blank=True
+    )
+    devId = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='devId',
+        null=True, blank=True
+    )
 
     def __str__(self):
         return self.id

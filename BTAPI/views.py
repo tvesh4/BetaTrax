@@ -16,6 +16,8 @@ def post_new_report(request):
         report = serializer.save(testerId=request.user)
         if request.user.email:
             send_status_update_email(report)
+        if report.productId.ownerId and report.productId.ownerId.email:
+            send_po_update_email(report)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -77,16 +79,16 @@ def patch_update_report(request, id):
                 if is_owner and (new_status == 'Open' or new_status == 'Closed'):
                     report.status = new_status
                     if new_status == 'Closed':
+                        if report.parent:
+                            if report.parent.testerId.email:
+                                send_duplicate_update_email(report.parent, report)
+                                send_duplicate_update_email(report, report.parent)
                         if new_parent:
                             new_parent_id = get_object_or_404(DefectReport, id=new_parent)
                             report.parent_id = new_parent_id
-                            if getattr(new_parent, 'testerEmail', None):
-                                send_duplicate_update_email(new_parent, report)
-                                send_duplicate_update_email(report, new_parent)
-                        if report.parent:
-                            if getattr(report.parent, 'testerEmail', None):
-                                send_duplicate_update_email(report.parent, report)
-                                send_duplicate_update_email(report, report.parent)
+                            if new_parent_id.testerId.email:
+                                send_duplicate_update_email(new_parent_id, report)
+                                send_duplicate_update_email(report, new_parent_id)
             case ('Open' | 'Reopened'):
                 # only if role == "Developer"
                 if is_developer and new_status == 'Assigned':
@@ -103,13 +105,12 @@ def patch_update_report(request, id):
                 # only if role == "Tester" or role == "ProductOwner"
                 elif (not is_developer) and new_status == 'Reopened':
                     report.status = new_status
-    if report and getattr(report, 'testerEmail', None):
+    if report and report.testerId.email:
         send_status_update_email(report)
     if report.children:
         for child in report.children.all():
-            getattr(child, 'testerEmail', None)
-            send_children_update_email(child)
-    if report.productId.ownerId and getattr(report.productId.ownerId, 'email', None):
+            send_children_update_email(child.testerId.email)
+    if report.productId.ownerId and report.productId.ownerId.email:
         send_po_update_email(report)
 
     # if dev_id: 
@@ -140,6 +141,6 @@ def post_new_product(request):
     data = request.data 
     serializer = ProductSerializer(data=data)
     if serializer.is_valid():
-        serializer.save()
+        serializer.save(ownerId=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

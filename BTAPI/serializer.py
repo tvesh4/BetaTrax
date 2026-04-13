@@ -20,10 +20,13 @@ class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 class ProductSerializer(serializers.ModelSerializer): #pbi 6 - sprint 2 allows PO to register product by API
-    # owner = serializers.ReadOnlyField(source='owner.username')
+    ownerId = serializers.ReadOnlyField(source='ownerId.username')
     class Meta:
         model = Product
         fields = ['id', 'displayName', 'description', 'currentVersion', 'isActiveBeta', 'ownerId']
+        # extra_kwargs = {
+        #     'ownerId': {'read_only': True}
+        # }
 
 class ProductOwnerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,7 +39,7 @@ class DeveloperSerializer(serializers.ModelSerializer):
         fields = ['id', 'productId', 'fullName', 'email', 'username', 'isActive']
 
 class CommentSerializer(serializers.ModelSerializer):
-    author_username = serializers.ReadOnlyField(source='authorId.username')
+    authorUsername = serializers.ReadOnlyField(source='authorId.username')
     class Meta:
         model = Comment
         fields = ['id', 'author_username', 'content', 'createdAt']
