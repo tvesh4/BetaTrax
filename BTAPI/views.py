@@ -9,19 +9,18 @@ from django.shortcuts import get_object_or_404
 from .utils import *
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, IsUser])
+@permission_classes([IsAuthenticated])
 def post_new_report(request): 
-    data = request.data 
-    serializer = DefectReportSerializer(data=data)
+    serializer = DefectReportSerializer(data=request.data)
     if serializer.is_valid():
-        report = serializer.save()
-        if report and getattr(report, 'testerEmail', None):
+        report = serializer.save(testerId=request.user)
+        if request.user.email:
             send_status_update_email(report)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated, IsUser])
+@permission_classes([IsAuthenticated])
 def get_reports(request, status):
     match status.upper():
         case "NEW":
@@ -50,7 +49,7 @@ def get_assigned_defects(request, id):
     return Response(data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated, IsUser])
+@permission_classes([IsAuthenticated])
 def get_full_report(request, id):
     report = get_object_or_404(DefectReport, pk=id)
     serializer = DefectReportSerializer(report)
@@ -66,6 +65,7 @@ def patch_update_report(request, id):
     new_parent = request.query_params.get('parent')
     # dev_id = request.query_params.get('dev')
     report = get_object_or_404(DefectReport, id=id)
+    
     user = request.user
     is_owner = user.groups.filter(name='Owner').exists()
     is_developer = user.groups.filter(name='Developer').exists()
@@ -91,6 +91,7 @@ def patch_update_report(request, id):
                 # only if role == "Developer"
                 if is_developer and new_status == 'Assigned':
                     report.status = new_status
+                    report.assignedToId = user
             case 'Assigned':
                 # only if role == "Developer", 'Closed' = Cannot Reproduce
                 if is_developer and new_status == 'Fixed' or new_status == 'Closed':
@@ -124,12 +125,12 @@ def patch_update_report(request, id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, IsUser])
+@permission_classes([IsAuthenticated])
 def post_comment(request, id): 
     report = get_object_or_404(DefectReport, id=id)
     serializer = CommentSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(defectReportId=report)
+        serializer.save(defectReportId=report, authorId=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

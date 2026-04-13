@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 def send_status_update_email(report):
+    print(report)
     subject = f"Update on Defect Report #{report.id}: {report.title}"
     message = (
         f"Hello Tester,\n\n"
@@ -11,7 +12,7 @@ def send_status_update_email(report):
         f"Best,\n\n"
         f"BetaTrax Team"
     )
-    recipient = report.testerEmail
+    recipient = report.testerId.email
     recipient_list = [recipient]
     try:
         send_mail(
@@ -62,7 +63,7 @@ def send_duplicate_update_email(report, dup_report):
         f"Best,\n\n"
         f"BetaTrax Team"
     )
-    recipient = report.testerEmail
+    recipient = report.testerId.email
     recipient_list = [recipient]
     try:
         send_mail(
@@ -87,7 +88,7 @@ def send_children_update_email(report):
         f"Best,\n\n"
         f"BetaTrax Team"
     )
-    recipient = report.testerEmail
+    recipient = report.testerId.email
     recipient_list = [recipient]
     try:
         send_mail(

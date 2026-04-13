@@ -36,11 +36,16 @@ class DeveloperSerializer(serializers.ModelSerializer):
         fields = ['id', 'productId', 'fullName', 'email', 'username', 'isActive']
 
 class CommentSerializer(serializers.ModelSerializer):
+    author_username = serializers.ReadOnlyField(source='authorId.username')
     class Meta:
         model = Comment
-        fields = ['id', 'authorId', 'content', 'createdAt']
+        fields = ['id', 'author_username', 'content', 'createdAt']
+        extra_kwargs = {
+            'authorId': {'read_only': True}
+        }
 
 class DefectReportSerializer(serializers.ModelSerializer):
+    testerUsername = serializers.ReadOnlyField(source='testerId.username')
     # sprint 2 pbi 7 duplicate parent link
     comments = CommentSerializer(many=True, read_only=True)
     children = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
@@ -49,6 +54,9 @@ class DefectReportSerializer(serializers.ModelSerializer):
         model = DefectReport
         fields = '__all__'
         read_only_fields = ['status', 'parent', 'children'] # status to be changed thru custom actions
+        extra_kwargs = {
+            'testerId': {'read_only': True},
+        }
 
     def validate(self, data):
         

@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 # class Tester(models.Model):
 #     id = models.CharField(primary_key=True)
@@ -66,8 +67,11 @@ class DefectReport(models.Model):
     title = models.CharField()
     description = models.CharField()
     reproductionSteps = models.CharField()
-    testerId = models.CharField()
-    testerEmail = models.EmailField(null=True, blank=True)
+    testerId = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='testerId'
+    )
     submittedAt = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         choices=Status.choices,
@@ -76,7 +80,7 @@ class DefectReport(models.Model):
     severity = models.CharField(choices=Severity.choices, null=True, blank=True)
     priority = models.CharField(choices=Priority.choices, null=True, blank=True)
     # evaluatedById = models.ForeignKey(ProductOwner, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
-    assignedToId = models.ForeignKey(Developer, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
+    assignedToId = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='assignedToId')
     parent = models.ForeignKey(
         'self', 
         on_delete=models.SET_NULL, 
@@ -102,7 +106,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE, 
         related_name='comments'
     )
-    authorId = models.CharField()
+    authorId = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='authorId')
     # authorType = ?
 
     class Meta:
