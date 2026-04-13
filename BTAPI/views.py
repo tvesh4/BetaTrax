@@ -71,6 +71,7 @@ def patch_update_report(request, id):
     user = request.user
     is_owner = user.groups.filter(name='Owner').exists()
     is_developer = user.groups.filter(name='Developer').exists()
+    status_changed = False
 
     if new_status and new_status in DefectReport.Status:
         match report.status:
@@ -78,6 +79,7 @@ def patch_update_report(request, id):
                 # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
                 if is_owner and (new_status == 'Open' or new_status == 'Closed'):
                     report.status = new_status
+                    status_changed = True
                     if new_status == 'Closed':
                         if report.parent:
                             if report.parent.testerId.email:
@@ -93,24 +95,28 @@ def patch_update_report(request, id):
                 # only if role == "Developer"
                 if is_developer and new_status == 'Assigned':
                     report.status = new_status
+                    status_changed = True
                     report.assignedToId = user
             case 'Assigned':
                 # only if role == "Developer", 'Closed' = Cannot Reproduce
                 if is_developer and new_status == 'Fixed' or new_status == 'Closed':
                     report.status = new_status
+                    status_changed = True
             case 'Fixed':
                 # only if role == "ProductOwner"
                 if is_owner and new_status == 'Resolved':
                     report.status = new_status
+                    status_changed = True
                 # only if role == "Tester" or role == "ProductOwner"
                 elif (not is_developer) and new_status == 'Reopened':
                     report.status = new_status
-    if report and report.testerId.email:
+                    status_changed = True
+    if report and report.testerId.email and status_changed:
         send_status_update_email(report)
-    if report.children:
+    if report.children and status_changed:
         for child in report.children.all():
             send_children_update_email(child.testerId.email)
-    if report.productId.ownerId and report.productId.ownerId.email:
+    if report.productId.ownerId and report.productId.ownerId.email and status_changed:
         send_po_update_email(report)
 
     # if dev_id: 
