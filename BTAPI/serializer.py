@@ -33,10 +33,10 @@ class ProductSerializer(serializers.ModelSerializer): #pbi 6 - sprint 2 allows P
 #         model = ProductOwner
 #         fields = ['id', 'fullName', 'email', 'username', 'isActive', 'productId']
 
-# class DeveloperSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Developer
-#         fields = ['id', 'productId', 'fullName', 'email', 'username', 'isActive']
+class DeveloperSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Developer
+        fields = '__all__'
 
 class CommentSerializer(serializers.ModelSerializer):
     authorUsername = serializers.ReadOnlyField(source='authorId.username')

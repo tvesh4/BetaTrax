@@ -57,6 +57,31 @@ def get_full_report(request, id):
     serializer = DefectReportSerializer(report)
     return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_developer_metric(request, id):
+    developer = get_object_or_404(Developer, user__username=id)
+
+    fixed_count = developer.fixedCount
+    reopened_count = developer.reopenedCount
+
+    report = "Insufficient data"
+    if fixed_count >= 20:
+        ratio = reopened_count / fixed_count
+        match ratio:
+            case val if val < (1/32):
+                report = "Good"
+            case val if val < (1/8):
+                report = "Fair"
+            case _:
+                report = "Poor"
+    
+    serializer = DeveloperSerializer(developer)
+    response = serializer.data
+    response["report"] = report
+    
+    return Response(response)
+
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated, IsUser | IsOwner | IsDeveloper])
 def patch_update_report(request, id):  
@@ -99,23 +124,31 @@ def patch_update_report(request, id):
                     report.assignedToId = user
             case 'Assigned':
                 # only if role == "Developer", 'Closed' = Cannot Reproduce
-                if is_developer and new_status == 'Fixed' or new_status == 'Closed':
-                    report.status = new_status
-                    status_changed = True
+                if is_developer:
+                    if new_status == 'Fixed':
+                        report.status = new_status
+                        status_changed = True
+                        request.user.developer_profile.fixedCount += 1
+                        request.user.developer_profile.save()
+                    elif new_status == 'Closed':
+                        report.status = new_status
+                        status_changed = True
             case 'Fixed':
                 # only if role == "ProductOwner"
-                if is_owner and new_status == 'Resolved':
-                    report.status = new_status
-                    status_changed = True
-                # only if role == "Tester" or role == "ProductOwner"
-                elif (not is_developer) and new_status == 'Reopened':
-                    report.status = new_status
-                    status_changed = True
+                if is_owner:
+                    if new_status == 'Resolved': 
+                        report.status = new_status
+                        status_changed = True
+                    elif new_status == 'Reopened':
+                        report.status = new_status
+                        report.assignedToId.developer_profile.reopenedCount += 1
+                        report.assignedToId.developer_profile.save()
+                        status_changed = True
     if report and report.testerId.email and status_changed:
         send_status_update_email(report)
     if report.children and status_changed:
         for child in report.children.all():
-            send_children_update_email(child.testerId.email)
+            send_children_update_email(child)
     if report.productId.ownerId and report.productId.ownerId.email and status_changed:
         send_po_update_email(report)
 

@@ -15,4 +15,5 @@ urlpatterns = [
     path('update/<str:id>/', patch_update_report, name='patch_update_report'),
     path('comment/<str:id>/', post_comment, name='post_comment'),
     path('product/', post_new_product, name='post_new_product'),
+    path('metric/<str:id>/', get_developer_metric, name='get_developer_metric'),
 ]

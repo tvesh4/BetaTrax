@@ -19,15 +19,25 @@ from django.conf import settings
 #     def __str__(self):
 #         return self.id
     
-# class Developer(models.Model):
-#     id = models.CharField(primary_key=True)
-#     fullName = models.CharField()
-#     email = models.EmailField(null=True, blank=True)
-#     username = models.CharField()
-#     isActive = models.BooleanField()
+class Developer(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='developer_profile'
+    )
+    fixedCount = models.IntegerField()
+    reopenedCount = models.IntegerField()
 
-#     def __str__(self):
-#         return self.id
+    def clean(self):
+        if not self.user.groups.filter(name='Developer').exists():
+            raise ValidationError("Only users in the 'Developer' group can have a Developer profile.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.user.username
     
 class Product(models.Model):
     id = models.CharField(primary_key=True)
