@@ -75,12 +75,8 @@ def get_developer_metric(request, id):
                 report = "Fair"
             case _:
                 report = "Poor"
-    
-    serializer = DeveloperSerializer(developer)
-    response = serializer.data
-    response["report"] = report
-    
-    return Response(response)
+
+    return Response({"report": report})
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated, IsUser | IsOwner | IsDeveloper])
