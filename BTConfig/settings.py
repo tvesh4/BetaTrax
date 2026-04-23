@@ -26,13 +26,14 @@ SECRET_KEY = 'django-insecure-1zs*6@&t3ok&aih7w&is00zfx-6rgwv+%3pka3uv)uq9*p1i%_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
 
-INSTALLED_APPS = [
-    'BTAPI.apps.BtapiConfig',
+SHARED_APPS = [
+    'django_tenants',
+    'BTAPI',
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,6 +43,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
+TENANT_APPS = [
+    'BTAPI',
+]
+
+INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -50,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_tenants.middleware.main.TenantMainMiddleware',
 ]
 
 ROOT_URLCONF = 'BTConfig.urls'
@@ -75,13 +83,30 @@ WSGI_APPLICATION = 'BTConfig.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django_tenants.postgresql_backend',
+        'NAME': 'btpostgres',
+        'USER': 'admin',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
+DATABASE_ROUTERS = (
+    'django_tenants.routers.TenantSyncRouter',
+)
+
+TENANT_MODEL = 'BTAPI.Client' 
+TENANT_DOMAIN_MODEL = 'BTAPI.Domain'
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

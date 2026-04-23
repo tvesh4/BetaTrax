@@ -2,6 +2,17 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
+from django.db import models
+from django_tenants.models import TenantMixin, DomainMixin
+
+class Client(TenantMixin):
+    name = models.CharField(max_length=100)
+    created_on = models.DateField(auto_now_add=True)
+    auto_create_schema = True 
+
+class Domain(DomainMixin):
+    pass
+
 # class Tester(models.Model):
 #     id = models.CharField(primary_key=True)
 #     email = models.EmailField(null=True, blank=True, unique=True)
