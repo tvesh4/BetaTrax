@@ -1,0 +1,12 @@
+$kind: collection
+name: BetaTrax API
+description: |-
+  API collection for BetaTrax — a defect tracking system. Covers authentication, product registration, defect report submission and management, and comments.
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+variables:
+  - key: baseUrl
+    value: 'http://localhost:8000'

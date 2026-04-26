@@ -27,14 +27,22 @@ def get_reports(request, status):
     match status.upper():
         case "NEW":
             reports = DefectReport.objects.filter(status=DefectReport.Status.NEW)
-        case "FIXED":
-            reports = DefectReport.objects.filter(status=DefectReport.Status.FIXED)
         case "OPEN":
             reports = DefectReport.objects.filter(status=DefectReport.Status.OPEN)
         case "ASSIGNED":
             reports = DefectReport.objects.filter(status=DefectReport.Status.ASSIGNED)
+        case "FIXED":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.FIXED)
+        case "RESOLVED":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.RESOLVED)
+        case "REOPENED":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.REOPENED)
+        case "CLOSED":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.CLOSED)
         case "ALL":
             reports = DefectReport.objects.all()
+        case _:
+            return Response({"error": f"Invalid status '{status}'"}, status=400)
     serializer = ReportLiteSerializer(reports, many=True)
     return Response(serializer.data)
 
@@ -86,9 +94,9 @@ def patch_update_report(request, id):
     new_severity = request.query_params.get('severity')
     new_priority = request.query_params.get('priority')
     new_parent = request.query_params.get('parent')
-    # dev_id = request.query_params.get('dev')
+    dev_id = request.query_params.get('dev')
     report = get_object_or_404(DefectReport, id=id.title())
-    
+
     user = request.user
     is_owner = user.groups.filter(name='Owner').exists()
     is_developer = user.groups.filter(name='Developer').exists()
@@ -148,8 +156,8 @@ def patch_update_report(request, id):
     if report.productId.ownerId and report.productId.ownerId.email and status_changed:
         send_po_update_email(report)
 
-    # if dev_id: 
-    #     report.assignedToId_id = dev_id
+    if dev_id:
+        report.assignedToId_id = dev_id
     if new_severity: 
         if new_severity in DefectReport.Severity:
             report.severity = new_severity
@@ -172,8 +180,8 @@ def post_comment(request, id):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsOwner | IsDeveloper])
-def post_new_product(request): 
-    data = request.data 
+def post_new_product(request):
+    data = request.data
     serializer = ProductSerializer(data=data)
     if serializer.is_valid():
         serializer.save(ownerId=request.user)

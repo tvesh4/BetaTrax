@@ -1,0 +1,10 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/api/reports/{{status}}/'
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+description: 'status can be: NEW, OPEN, ASSIGNED, FIXED, RESOLVED, REOPENED, CLOSED, ALL'

@@ -1,0 +1,22 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/product/'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "id": "PROD-1",
+      "displayName": "My Product",
+      "description": "Product description",
+      "currentVersion": "1.0.0",
+      "isActiveBeta": true
+    }

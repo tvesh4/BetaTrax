@@ -1,0 +1,28 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/token/'
+order: 1000
+auth:
+  type: noauth
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "{{username}}",
+      "password": "{{password}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 200) {
+          const json = pm.response.json();
+          pm.environment.set("accessToken", json.access);
+          pm.environment.set("refreshToken", json.refresh);
+          console.log("Login successful. Tokens saved to environment.");
+      } else {
+          console.error("Login failed with status:", pm.response.code);
+      }

@@ -1,0 +1,37 @@
+Product Backlog for Sprint 2 of BetaTrax
+
+PBI1: Report Defect 
+Description: As a Tester, I want to submit a bug with my email so that the team is aware of a new issue.
+Confirmation (Acceptance Criteria): API accepts POST with email/details; status defaults to "New"; email sent to PO and tester.
+
+PBI2: Triage Defect
+Description: As a PO, I want to evaluate and accept a report so that it is prioritized. 
+Confirmation (Acceptance Criteria): PO can PATCH Severity/Priority; status updates to "Open".
+
+PBI3: Fix Defect 
+Description: As a Developer, I want to take responsibility and resolve a bug so that the product improves. 
+Confirmation (Acceptance Criteria): Developer can assign self; status updates to "Assigned" then "Fixed".
+
+PBI4: Resolve Defect
+Description: As a PO, I want to verify the fix so that I can close the report.
+Confirmation (Acceptance Criteria): PO can update status to "Resolved"; final notification sent.
+
+PBI5: Product Registration
+Description: As a PO, I want to register a new product so that I can manage its defects.
+Confirmation (Acceptance Criteria): POST /products/ creates a new entry; Owner is automatically assigned.
+
+PBI6: Duplicate Linking
+Description: As a PO, I want to mark a bug as a duplicate to link them so that efforts aren't split. 
+Confirmation (Acceptance Criteria): PATCH status to "Closed"; must include parent_id; linked in DB. Validation prevents self-linking.
+
+PBI7: Flag as "Cannot Reproduce"
+Description: As a Dev, I want to flag unrepeatable bugs so that I can focus on valid ones.
+Confirmation (Acceptance Criteria): Status updates to "Closed"; terminal state; notification sent.
+
+PBI8: Reopen Defect 
+Description: As a Tester, I want to reject a failed fix so that it is sent back to the backlog.
+Confirmation (Acceptance Criteria): Status moves from "Fixed" to "Reopened"; notifications sent. 
+
+PBI9: Authentication
+Description: As a User, I want to log in so that I can access protected endpoints.
+Confirmation (Acceptance Criteria): API returns JWT/Token; restricts access based on PO/Dev roles. 

@@ -1,0 +1,30 @@
+$kind: http-request
+method: PATCH
+url: '{{baseUrl}}/api/update/{{reportId}}/'
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+queryParams:
+  - key: status
+    value: ''
+    description: 'Open, Assigned, Fixed, Resolved, Reopened, Closed'
+    disabled: true
+  - key: severity
+    value: ''
+    description: 'Low, Minor, Major, Critical'
+    disabled: true
+  - key: priority
+    value: ''
+    description: 'Low, Medium, High, Critical'
+    disabled: true
+  - key: dev
+    value: ''
+    description: Developer ID to assign
+    disabled: true
+  - key: parent
+    value: ''
+    description: Parent report ID (for marking as duplicate)
+    disabled: true

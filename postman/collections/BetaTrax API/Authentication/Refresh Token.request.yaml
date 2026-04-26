@@ -1,0 +1,26 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/token/refresh/'
+order: 2000
+auth:
+  type: noauth
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refresh": "{{refreshToken}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      if (pm.response.code === 200) {
+          const json = pm.response.json();
+          pm.environment.set("accessToken", json.access);
+          console.log("Token refresh successful. Access token saved to environment.");
+      } else {
+          console.error("Token refresh failed with status:", pm.response.code);
+      }

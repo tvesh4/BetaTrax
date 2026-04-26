@@ -1,0 +1,25 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/api/defect/'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "id": "DR-001",
+      "productId": "PROD-1",
+      "productVersion": "1.0.0",
+      "title": "Bug title",
+      "description": "Bug description",
+      "reproductionSteps": "Step 1: ...",
+      "testerId": "TESTER-1",
+      "testerEmail": "tester@example.com"
+    }
