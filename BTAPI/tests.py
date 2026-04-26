@@ -182,3 +182,64 @@ class EndpointSmokeTests(APITestCase):
         response = self.client.get('/api/metric/dev/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['report'], 'Insufficient data')
+
+    def test_post_new_report_creates_defect(self):
+        """#3: POST /api/defect/ — submit a new defect report."""
+        self.client.force_authenticate(user=self.tester)
+        response = self.client.post(
+            '/api/defect/',
+            {
+                'id': 'Def002',
+                'productId': 'Prod001',
+                'productVersion': '1.0',
+                'title': 'Crashes on startup',
+                'description': 'App quits immediately.',
+                'reproductionSteps': '1. Open app',
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['status'], 'New')
+
+    def test_patch_update_report_new_to_open(self):
+        """#7: PATCH /api/update/<id>/?status=Open — owner moves New -> Open.
+
+        Simplest workflow transition; avoids the duplicate-link branches
+        and the raw-vs-titled comparison bug at views.py:101.
+        """
+        self.client.force_authenticate(user=self.po)
+        response = self.client.patch('/api/update/def001/?status=Open')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'Open')
+
+    def test_post_comment_creates_comment(self):
+        """#8: POST /api/comment/<id>/ — post a comment on a defect.
+
+        Comment.id is a manually-assigned CharField, so the body must
+        include a unique 'id' value.
+        """
+        self.client.force_authenticate(user=self.tester)
+        response = self.client.post(
+            '/api/comment/def001/',
+            {'id': 'Com001', 'content': 'I see this too.'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['content'], 'I see this too.')
+
+    def test_post_new_product_creates_product(self):
+        """#9: POST /api/product/ — register a new product."""
+        self.client.force_authenticate(user=self.po)
+        response = self.client.post(
+            '/api/product/',
+            {
+                'id': 'Prod002',
+                'displayName': 'BetaTrax Mobile',
+                'description': 'Mobile companion app.',
+                'currentVersion': '0.1',
+                'isActiveBeta': True,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['id'], 'Prod002')
