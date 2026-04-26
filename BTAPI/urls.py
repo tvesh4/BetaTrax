@@ -1,13 +1,29 @@
 from django.urls import path
-from .views import *
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
 
+from .views import *
+
+DocumentedTokenObtainPairView = extend_schema_view(
+    post=extend_schema(
+        tags=['Authentication'],
+        summary='Obtain a JWT access + refresh token pair',
+    ),
+)(TokenObtainPairView)
+
+DocumentedTokenRefreshView = extend_schema_view(
+    post=extend_schema(
+        tags=['Authentication'],
+        summary='Exchange a refresh token for a new access token',
+    ),
+)(TokenRefreshView)
+
 urlpatterns = [
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/', DocumentedTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', DocumentedTokenRefreshView.as_view(), name='token_refresh'),
     path('defect/', post_new_report, name='post_new_report'),
     path('reports/<str:status>/', get_reports, name='get_reports'),
     path('reports/assigned/<str:id>/', get_assigned_defects, name='get_assigned_defects'),
