@@ -1,0 +1,14 @@
+[run]
+branch = True
+source = BTAPI
+omit =
+    BTAPI/migrations/*
+    BTAPI/tests.py
+    BTAPI/__init__.py
+    BTAPI/admin.py
+    BTAPI/apps.py
+
+[report]
+show_missing = True
+skip_covered = False
+precision = 1
