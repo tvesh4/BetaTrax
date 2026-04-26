@@ -8,10 +8,13 @@ from .serializer import *
 from django.shortcuts import get_object_or_404
 from .utils import *
 from .metrics import classify_developer_effectiveness
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
+@extend_schema(tags=['Defect Reports'], summary='Submit a new defect report')
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def post_new_report(request): 
+def post_new_report(request):
     serializer = DefectReportSerializer(data=request.data)
     if serializer.is_valid():
         report = serializer.save(testerId=request.user)
@@ -22,6 +25,7 @@ def post_new_report(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@extend_schema(tags=['Defect Reports'], summary='List defect reports filtered by status')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_reports(request, status):
@@ -47,6 +51,7 @@ def get_reports(request, status):
     serializer = ReportLiteSerializer(reports, many=True)
     return Response(serializer.data)
 
+@extend_schema(tags=['Defect Reports'], summary='List ASSIGNED reports for a developer')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsDeveloper | IsOwner])
 def get_assigned_defects(request, id):
@@ -59,6 +64,7 @@ def get_assigned_defects(request, id):
         return Response({"message": "No assigned reports for this developer"}, status=200)
     return Response(data)
 
+@extend_schema(tags=['Defect Reports'], summary='Get full detail of a defect report')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_full_report(request, id):
@@ -66,6 +72,7 @@ def get_full_report(request, id):
     serializer = DefectReportSerializer(report)
     return Response(serializer.data)
 
+@extend_schema(tags=['Metrics'], summary='Get developer effectiveness classification')
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_developer_metric(request, id):
@@ -75,9 +82,40 @@ def get_developer_metric(request, id):
     )
     return Response({"report": report})
 
+@extend_schema(
+    tags=['Defect Reports'],
+    summary='Update report status, severity, priority, or duplicate parent',
+    parameters=[
+        OpenApiParameter(
+            name='status', type=OpenApiTypes.STR, required=False,
+            location=OpenApiParameter.QUERY,
+            description='New status (e.g. Open, Assigned, Fixed, Resolved, Reopened, Cannot Reproduce, Duplicate, Rejected). Role-enforced.',
+        ),
+        OpenApiParameter(
+            name='severity', type=OpenApiTypes.STR, required=False,
+            location=OpenApiParameter.QUERY,
+            description='New severity (Low, Minor, Major, Critical).',
+        ),
+        OpenApiParameter(
+            name='priority', type=OpenApiTypes.STR, required=False,
+            location=OpenApiParameter.QUERY,
+            description='New priority (Low, Medium, High, Critical).',
+        ),
+        OpenApiParameter(
+            name='parent', type=OpenApiTypes.STR, required=False,
+            location=OpenApiParameter.QUERY,
+            description='Defect ID of the parent report (used when marking this report as a duplicate).',
+        ),
+        OpenApiParameter(
+            name='dev', type=OpenApiTypes.STR, required=False,
+            location=OpenApiParameter.QUERY,
+            description='User ID of the developer to (re)assign this report to.',
+        ),
+    ],
+)
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated, IsUser | IsOwner | IsDeveloper])
-def patch_update_report(request, id):  
+def patch_update_report(request, id):
     
     new_status = request.query_params.get('status')
     new_severity = request.query_params.get('severity')
@@ -157,9 +195,10 @@ def patch_update_report(request, id):
     serializer = DefectReportSerializer(report)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+@extend_schema(tags=['Comments'], summary='Post a comment on a defect report')
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def post_comment(request, id): 
+def post_comment(request, id):
     report = get_object_or_404(DefectReport, id=id.title())
     serializer = CommentSerializer(data=request.data)
     if serializer.is_valid():
@@ -167,6 +206,7 @@ def post_comment(request, id):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@extend_schema(tags=['Products'], summary='Register a new product')
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsOwner | IsDeveloper])
 def post_new_product(request):
