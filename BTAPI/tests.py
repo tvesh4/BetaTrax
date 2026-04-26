@@ -110,3 +110,31 @@ class EndpointSmokeTests(APITestCase):
             status=DefectReport.Status.NEW,
             assignedToId=cls.dev,
         )
+
+    def test_post_token_returns_access_and_refresh(self):
+        """#1: POST /api/token/ — JWT obtain."""
+        response = self.client.post(
+            '/api/token/',
+            {'username': 'Tester', 'password': 'pw'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
+
+    def test_post_token_refresh_returns_new_access(self):
+        """#2: POST /api/token/refresh/ — JWT refresh."""
+        obtain = self.client.post(
+            '/api/token/',
+            {'username': 'Tester', 'password': 'pw'},
+            format='json',
+        )
+        refresh_token = obtain.data['refresh']
+
+        response = self.client.post(
+            '/api/token/refresh/',
+            {'refresh': refresh_token},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('access', response.data)
