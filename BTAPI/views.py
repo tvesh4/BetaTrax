@@ -43,7 +43,7 @@ def get_reports(request, status):
 def get_assigned_defects(request, id):
     reports = DefectReport.objects.filter(
         status=DefectReport.Status.ASSIGNED,
-        assignedToId=id
+        assignedToId=id.title()
     )
     data = reports.values('id', 'status', 'title')
     if not data:
@@ -53,14 +53,14 @@ def get_assigned_defects(request, id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_full_report(request, id):
-    report = get_object_or_404(DefectReport, pk=id)
+    report = get_object_or_404(DefectReport, pk=id.title())
     serializer = DefectReportSerializer(report)
     return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_developer_metric(request, id):
-    developer = get_object_or_404(Developer, user__username=id)
+    developer = get_object_or_404(Developer, user__username=id.title())
 
     fixed_count = developer.fixedCount
     reopened_count = developer.reopenedCount
@@ -164,7 +164,7 @@ def patch_update_report(request, id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def post_comment(request, id): 
-    report = get_object_or_404(DefectReport, id=id)
+    report = get_object_or_404(DefectReport, id=id.title())
     serializer = CommentSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(defectReportId=report, authorId=request.user)
