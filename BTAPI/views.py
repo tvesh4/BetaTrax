@@ -87,7 +87,7 @@ def patch_update_report(request, id):
     new_priority = request.query_params.get('priority')
     new_parent = request.query_params.get('parent')
     # dev_id = request.query_params.get('dev')
-    report = get_object_or_404(DefectReport, id=id)
+    report = get_object_or_404(DefectReport, id=id.title())
     
     user = request.user
     is_owner = user.groups.filter(name='Owner').exists()
@@ -135,7 +135,8 @@ def patch_update_report(request, id):
                     if new_status.title() == 'Resolved': 
                         report.status = new_status.title()
                         status_changed = True
-                    elif new_status.title() == 'Reopened':
+                if not is_developer:
+                    if new_status.title() == 'Reopened':
                         report.status = new_status.title()
                         report.assignedToId.developer_profile.reopenedCount += 1
                         report.assignedToId.developer_profile.save()
