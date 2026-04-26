@@ -30,7 +30,7 @@ Group F of COMP3297 2025-2026 Semester 2
 - `POST /api/products/` - Register a new product. (PBI-5)
 - `POST /api/comment/<str:id>/` - Post a new comment on a defect report. (PBI-6 in Sprint 1)
 - `POST /api/defect/` - Submit a new defect report. (PBI-1)
-- `GET /api/reports/<str:status>/` - List reports with support for status filtering (including NEW, OPEN, ASSIGNED, FIXED, RESOLVED, REOPENED, and CLOSED). (PBI-10)
+- `GET /api/reports/<str:status>/` - List reports with support for status filtering (including NEW, OPEN, ASSIGNED, FIXED, RESOLVED, REOPENED, DUPLICATE, REJECTED,and CANNOT REPRODUCE). (PBI-10)
 - `PATCH /api/update/<str:id>/` - Update report status, severity, priority, or link a parent duplicate. (PBI-6, 7, 8, 9)
 - `GET /api/reports/assigned/<str:dev_id>/` - View all active tasks for a specific developer. (PBI-3)
 - `GET /api/defect/<str:id>/` - View full detail of a specific defect report. 

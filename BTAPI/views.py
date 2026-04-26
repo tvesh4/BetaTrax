@@ -43,7 +43,7 @@ def get_reports(request, status):
 def get_assigned_defects(request, id):
     reports = DefectReport.objects.filter(
         status=DefectReport.Status.ASSIGNED,
-        assignedToId=id
+        assignedToId=id.title()
     )
     data = reports.values('id', 'status', 'title')
     if not data:
@@ -53,14 +53,14 @@ def get_assigned_defects(request, id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_full_report(request, id):
-    report = get_object_or_404(DefectReport, pk=id)
+    report = get_object_or_404(DefectReport, pk=id.title())
     serializer = DefectReportSerializer(report)
     return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_developer_metric(request, id):
-    developer = get_object_or_404(Developer, user__username=id)
+    developer = get_object_or_404(Developer, user__username=id.title())
 
     fixed_count = developer.fixedCount
     reopened_count = developer.reopenedCount
@@ -87,21 +87,21 @@ def patch_update_report(request, id):
     new_priority = request.query_params.get('priority')
     new_parent = request.query_params.get('parent')
     # dev_id = request.query_params.get('dev')
-    report = get_object_or_404(DefectReport, id=id)
+    report = get_object_or_404(DefectReport, id=id.title())
     
     user = request.user
     is_owner = user.groups.filter(name='Owner').exists()
     is_developer = user.groups.filter(name='Developer').exists()
     status_changed = False
 
-    if new_status and new_status in DefectReport.Status:
+    if new_status and new_status.title() in DefectReport.Status:
         match report.status:
             case 'New':
                 # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
-                if is_owner and (new_status == 'Open' or new_status == 'Closed'):
-                    report.status = new_status
+                if is_owner and (new_status.title() == 'Open' or new_status.title() in ('Duplicate', 'Rejected')):
+                    report.status = new_status.title()
                     status_changed = True
-                    if new_status == 'Closed':
+                    if new_status in ('Duplicate', 'Rejected'):
                         if report.parent:
                             if report.parent.testerId.email:
                                 send_duplicate_update_email(report.parent, report)
@@ -114,29 +114,29 @@ def patch_update_report(request, id):
                                 send_duplicate_update_email(report, new_parent_id)
             case ('Open' | 'Reopened'):
                 # only if role == "Developer"
-                if is_developer and new_status == 'Assigned':
-                    report.status = new_status
+                if is_developer and new_status.title() == 'Assigned':
+                    report.status = new_status.title()
                     status_changed = True
                     report.assignedToId = user
             case 'Assigned':
                 # only if role == "Developer", 'Closed' = Cannot Reproduce
                 if is_developer:
-                    if new_status == 'Fixed':
-                        report.status = new_status
+                    if new_status.title() == 'Fixed':
+                        report.status = new_status.title()
                         status_changed = True
                         request.user.developer_profile.fixedCount += 1
                         request.user.developer_profile.save()
-                    elif new_status == 'Closed':
-                        report.status = new_status
+                    elif new_status.title() == 'Cannot Reproduce':
+                        report.status = new_status.title()
                         status_changed = True
             case 'Fixed':
                 # only if role == "ProductOwner"
                 if is_owner:
-                    if new_status == 'Resolved': 
-                        report.status = new_status
+                    if new_status.title() == 'Resolved': 
+                        report.status = new_status.title()
                         status_changed = True
-                    elif new_status == 'Reopened':
-                        report.status = new_status
+                    elif new_status.title() == 'Reopened':
+                        report.status = new_status.title()
                         report.assignedToId.developer_profile.reopenedCount += 1
                         report.assignedToId.developer_profile.save()
                         status_changed = True
@@ -163,7 +163,7 @@ def patch_update_report(request, id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def post_comment(request, id): 
-    report = get_object_or_404(DefectReport, id=id)
+    report = get_object_or_404(DefectReport, id=id.title())
     serializer = CommentSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(defectReportId=report, authorId=request.user)

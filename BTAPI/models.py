@@ -77,7 +77,10 @@ class DefectReport(models.Model):
         NEW = 'New', 'New'
         OPEN = 'Open', 'Open'
         ASSIGNED = 'Assigned', 'Assigned'
-        CLOSED = 'Closed', 'Closed' # Cannot Reproduce, Duplicate, Rejected
+        # CLOSED = 'Closed', 'Closed' # Cannot Reproduce, Duplicate, Rejected
+        CANNOT_REPRODUCE = 'Cannot Reproduce', 'Cannot Reproduce'
+        DUPLICATE = 'Duplicate', 'Duplicate'
+        REJECTED = 'Rejected', 'Rejected'
         FIXED = 'Fixed', 'Fixed'
         REOPENED = 'Reopened', 'Reopened'
         RESOLVED = 'Resolved', 'Resolved'

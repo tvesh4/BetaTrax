@@ -10,7 +10,7 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('defect/', post_new_report, name='post_new_report'),
     path('reports/<str:status>/', get_reports, name='get_reports'),
-    path('reports/assigned/dev=<str:id>/', get_assigned_defects, name='get_assigned_defects'),
+    path('reports/assigned/<str:id>/', get_assigned_defects, name='get_assigned_defects'),
     path('defect/<str:id>/', get_full_report, name='get_full_report'),
     path('update/<str:id>/', patch_update_report, name='patch_update_report'),
     path('comment/<str:id>/', post_comment, name='post_comment'),
