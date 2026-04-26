@@ -1,6 +1,9 @@
+from django.contrib.auth.models import Group, User
 from django.test import SimpleTestCase
+from rest_framework.test import APITestCase
 
 from BTAPI.metrics import classify_developer_effectiveness
+from BTAPI.models import Comment, DefectReport, Developer, Product
 
 
 class ClassifierTests(SimpleTestCase):
@@ -52,4 +55,58 @@ class ClassifierTests(SimpleTestCase):
         self.assertEqual(
             classify_developer_effectiveness(32, 4),
             "Poor",
+        )
+
+
+class EndpointSmokeTests(APITestCase):
+    """Sprint 3 §38: one representative happy-path test per endpoint
+    method.
+
+    Fixture identifiers are TitleCase ('Tester', 'Dev', 'Po', 'Def001',
+    'Prod001') so that endpoint-side `.title()` lookups are no-ops
+    -- this sidesteps a known case-fragility bug without changing
+    the views.  Tests added in subsequent tasks.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        user_group = Group.objects.create(name='User')
+        dev_group = Group.objects.create(name='Developer')
+        owner_group = Group.objects.create(name='Owner')
+
+        cls.tester = User.objects.create_user(
+            username='Tester', password='pw', email='tester@example.com')
+        cls.tester.groups.add(user_group)
+
+        cls.dev = User.objects.create_user(
+            username='Dev', password='pw', email='dev@example.com')
+        cls.dev.groups.add(dev_group)
+
+        cls.po = User.objects.create_user(
+            username='Po', password='pw', email='po@example.com')
+        cls.po.groups.add(owner_group)
+
+        cls.dev_profile = Developer.objects.create(
+            user=cls.dev, fixedCount=0, reopenedCount=0)
+
+        cls.product = Product.objects.create(
+            id='Prod001',
+            displayName='Test Product',
+            description='desc',
+            currentVersion='1.0',
+            isActiveBeta=True,
+            ownerId=cls.po,
+            devId=cls.dev,
+        )
+
+        cls.defect = DefectReport.objects.create(
+            id='Def001',
+            productId=cls.product,
+            productVersion='1.0',
+            title='Seed defect',
+            description='desc',
+            reproductionSteps='steps',
+            testerId=cls.tester,
+            status=DefectReport.Status.NEW,
+            assignedToId=cls.dev,
         )
