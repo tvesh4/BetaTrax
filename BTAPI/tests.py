@@ -138,3 +138,47 @@ class EndpointSmokeTests(APITestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn('access', response.data)
+
+    def test_get_reports_by_status_returns_list(self):
+        """#4: GET /api/reports/<status>/ — list reports filtered by status."""
+        self.client.force_authenticate(user=self.tester)
+        response = self.client.get('/api/reports/NEW/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.data, list)
+        ids = [item['id'] for item in response.data]
+        self.assertIn('Def001', ids)
+
+    def test_get_assigned_defects_returns_ok(self):
+        """#5: GET /api/reports/assigned/<dev.pk>/ — developer's ASSIGNED tasks.
+
+        The seed defect is in 'New' state (not 'Assigned'), so the endpoint
+        returns the 'No assigned reports' message.  We pass dev.pk as the
+        URL parameter to sidestep the known bug at views.py:55 that does
+        `assignedToId=id.title()` against an FK column.
+        """
+        self.client.force_authenticate(user=self.dev)
+        response = self.client.get(f'/api/reports/assigned/{self.dev.pk}/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_full_report_returns_defect(self):
+        """#6: GET /api/defect/<id>/ — full defect detail.
+
+        Lowercase URL parameter ('def001') deliberately exercises the
+        existing `.title()` lookup convention.
+        """
+        self.client.force_authenticate(user=self.tester)
+        response = self.client.get('/api/defect/def001/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['id'], 'Def001')
+
+    def test_get_developer_metric_returns_classification(self):
+        """#10: GET /api/metric/<id>/ — developer effectiveness classification.
+
+        Lowercase URL parameter ('dev') deliberately exercises the
+        `.title()` lookup convention.  fixedCount is 0 so the
+        classifier returns 'Insufficient data'.
+        """
+        self.client.force_authenticate(user=self.dev)
+        response = self.client.get('/api/metric/dev/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['report'], 'Insufficient data')
