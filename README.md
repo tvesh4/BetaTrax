@@ -10,6 +10,111 @@ Group F of COMP3297 2025-2026 Semester 2
 4. Load user groups `python3 manage.py loaddata groups.json`
 5. Start the development server: `python3 manage.py runserver`
 
+> ⚠️ **Sprint 3 note:** the steps above are the legacy single-tenant path (SQLite). For Sprint 3, BetaTrax runs on PostgreSQL with `django-tenants`. The active `BTConfig/settings.py` targets Postgres, so `manage.py migrate` is replaced by `manage.py migrate_schemas`. See **Multi-tenancy Setup** below for the full workflow.
+
+## Multi-tenancy Setup (PostgreSQL + django-tenants)
+
+BetaTrax is configured for the *single-database, separate-schema* multi-tenancy pattern via [`django-tenants`](https://django-tenants.readthedocs.io/). Each customer (a development company) gets its own PostgreSQL schema; the API routes requests to the right schema based on the request's hostname.
+
+### 1. Install PostgreSQL
+
+Either:
+- **Postgres.app** — download from [postgresapp.com](https://postgresapp.com/) and launch. Server runs on `localhost:5432` by default.
+- **Homebrew** — `brew install postgresql@16 && brew services start postgresql@16`.
+
+### 2. Make the Postgres CLI tools available
+
+For Postgres.app:
+
+```bash
+# Current shell only:
+export PATH="/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH"
+
+# Persistent (zsh):
+echo 'export PATH="/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### 3. Create the role and database
+
+```bash
+createuser --superuser admin
+psql -d postgres -c "ALTER USER admin WITH PASSWORD 'password';"
+createdb -O admin btpostgres
+```
+
+The credentials match `BTConfig/settings.py`. The `--superuser` flag is required because `django-tenants` issues `CREATE SCHEMA` at runtime when `auto_create_schema=True` Clients are saved.
+
+Verify connectivity:
+
+```bash
+PGPASSWORD=password psql -h localhost -U admin -d btpostgres -c '\conninfo'
+```
+
+### 4. Apply migrations
+
+`django-tenants` replaces Django's `migrate` with `migrate_schemas`:
+
+```bash
+python3 manage.py migrate_schemas --shared    # public schema (admin, auth, tenant metadata)
+python3 manage.py migrate_schemas             # tenant schemas (none yet, no-op first time)
+```
+
+### 5. Bootstrap demo tenants
+
+```bash
+python3 manage.py bootstrap_tenants
+```
+
+This idempotently creates:
+- The **public** tenant (admin/management, no API data).
+- The **ACME Corp** tenant (`acme.localhost`) with users `AcmePo`, `AcmeDev`, `AcmeTester` (password `pw`), one product `AcmeProd1`, one defect `AcmeDef1`.
+- The **Globex** tenant (`globex.localhost`) with users `GlobexPo`, `GlobexDev`, `GlobexTester` (password `pw`), one product `GlobexProd1`, one defect `GlobexDef1`.
+
+### 6. Create a superuser for the public admin
+
+```bash
+python3 manage.py createsuperuser
+```
+
+Then visit `http://localhost:8000/admin/` to manage tenants and domains.
+
+### 7. Verify the demo works
+
+Start the dev server:
+
+```bash
+python3 manage.py runserver
+```
+
+In another terminal:
+
+```bash
+# 1. Acquire a token in ACME — must succeed
+curl -X POST http://acme.localhost:8000/api/token/ \
+    -H "Content-Type: application/json" \
+    -d '{"username":"AcmePo","password":"pw"}'
+
+# 2. Same user, Globex tenant — must fail with 401 (user does not exist there)
+curl -X POST http://globex.localhost:8000/api/token/ \
+    -H "Content-Type: application/json" \
+    -d '{"username":"AcmePo","password":"pw"}'
+
+# 3. Per-tenant data isolation — each list contains only its own defect
+curl -H "Authorization: Bearer <ACME_ACCESS_TOKEN>" \
+    http://acme.localhost:8000/api/reports/ALL/
+curl -H "Authorization: Bearer <GLOBEX_ACCESS_TOKEN>" \
+    http://globex.localhost:8000/api/reports/ALL/
+```
+
+`*.localhost` resolves to `127.0.0.1` automatically on macOS — no `/etc/hosts` edit is required.
+
+### Limitations
+
+1. The `BTAPI` app is dual-listed in `SHARED_APPS` and `TENANT_APPS`. Effect: per-tenant data tables (`Developer`, `Product`, `DefectReport`, `Comment`) get created in *both* the public schema and every tenant schema. Per-tenant isolation still works correctly because `TenantSyncRouter` directs reads/writes to the active schema, but the public-schema copies are unused shadow tables. A future cleanup would split `BTAPI` into a `BTTenants` app for `Client`/`Domain` plus a tenant-only `BTAPI`.
+2. The automated test suite (`BTConfig.settings_test`) strips `django_tenants` and runs on in-memory SQLite, so it does not exercise tenant isolation. A second test pass under the real Postgres + tenants config is required for full validation.
+3. The migration history (50 BTAPI migrations from the SQLite era) was not squashed. Some migrations are likely redundant. Cleanup is out of scope for Sprint 3.
+
 ## Testing & Coverage
 
 The active settings module (`BTConfig/settings`) targets PostgreSQL with `django-tenants`. For fast local test runs without standing up Postgres, this project ships a SQLite-backed test-only settings module (`BTConfig.settings_test`) that strips the tenants layer.
