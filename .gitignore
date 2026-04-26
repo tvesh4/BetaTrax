@@ -5,3 +5,9 @@ db.sqlite3
 *.env
 .DS_Store
 email/
+.postman/
+postman/
+
+# coverage.py outputs
+.coverage
+htmlcov/
