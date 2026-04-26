@@ -115,6 +115,28 @@ curl -H "Authorization: Bearer <GLOBEX_ACCESS_TOKEN>" \
 2. The automated test suite (`BTConfig.settings_test`) strips `django_tenants` and runs on in-memory SQLite, so it does not exercise tenant isolation. A second test pass under the real Postgres + tenants config is required for full validation.
 3. The migration history (50 BTAPI migrations from the SQLite era) was not squashed. Some migrations are likely redundant. Cleanup is out of scope for Sprint 3.
 
+## API Documentation
+
+The full BetaTrax API is documented via [`drf-spectacular`](https://drf-spectacular.readthedocs.io/) as an OpenAPI 3.0 specification.
+
+After starting the dev server (`python3 manage.py runserver`), visit:
+
+| URL | Purpose |
+|---|---|
+| `http://localhost:8000/api/schema/` | Raw OpenAPI 3.0 YAML schema |
+| `http://localhost:8000/api/schema/swagger-ui/` | Interactive Swagger UI (try endpoints in-browser) |
+| `http://localhost:8000/api/schema/redoc/` | ReDoc (read-only, easier-to-print layout) |
+
+To export the schema as a file:
+
+```bash
+python3 manage.py spectacular --color --file schema.yml
+```
+
+A complementary [Postman collection](postman/collections/) lives under `postman/` with example requests for each endpoint.
+
+> ⚠️ The schema is tenant-agnostic. When testing endpoints, substitute the tenant subdomain — e.g. `acme.localhost:8000` instead of `localhost:8000`.
+
 ## Testing & Coverage
 
 The active settings module (`BTConfig/settings`) targets PostgreSQL with `django-tenants`. For fast local test runs without standing up Postgres, this project ships a SQLite-backed test-only settings module (`BTConfig.settings_test`) that strips the tenants layer.
