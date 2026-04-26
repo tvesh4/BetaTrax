@@ -10,6 +10,39 @@ Group F of COMP3297 2025-2026 Semester 2
 4. Load user groups `python3 manage.py loaddata groups.json`
 5. Start the development server: `python3 manage.py runserver`
 
+## Testing & Coverage
+
+The active settings module (`BTConfig/settings`) targets PostgreSQL with `django-tenants`. For fast local test runs without standing up Postgres, this project ships a SQLite-backed test-only settings module (`BTConfig.settings_test`) that strips the tenants layer.
+
+> ⚠️ Tests under `settings_test` do **not** exercise tenant isolation. A second pass under the real Postgres + tenants configuration is required once Sub-project 3 (multi-tenancy) lands.
+
+### Run the test suite
+
+```bash
+python3 manage.py test --settings=BTConfig.settings_test BTAPI
+```
+
+### Measure statement and branch coverage
+
+The Sprint 3 §25 rubric requires full statement and full branch coverage of the developer-effectiveness classifier (`BTAPI/metrics.py`).
+
+```bash
+# 1. Run the suite under coverage
+coverage run --rcfile=.coveragerc manage.py test \
+    --settings=BTConfig.settings_test BTAPI
+
+# 2. Whole-app report (informational)
+coverage report -m
+
+# 3. Classifier-only report (the §25 grading hook)
+coverage report -m --include='BTAPI/metrics.py'
+
+# 4. Optional HTML drill-down
+coverage html  # writes htmlcov/index.html
+```
+
+Step 3 must show `100.0%` under `Cover` for `BTAPI/metrics.py` with an empty `Missing` column. The six cases in `BTAPI/tests.py::ClassifierTests` are what produce that result.
+
 ## Key Assumptions for Sprint 1 Executable
 - This increment is configured for 1 product. A default product (e.g., with ID "PROD-1") must be created via the Django Admin interface before use. All submitted defect reports are associated with this product.
 - Authentication for Product Owners and Developers is out of scope for this sprint. API endpoints assume the requests are from an authenticated source. User records for Product Owners and Developers must be created via the Django Admin interface to allow assignment.
