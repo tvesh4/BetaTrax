@@ -35,6 +35,7 @@ SHARED_APPS = [
     'django_tenants',
     'BTAPI',
     'rest_framework',
+    'drf_spectacular',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -152,7 +153,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -162,3 +164,22 @@ SIMPLE_JWT = {
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = 'email'
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'BetaTrax API',
+    'DESCRIPTION': (
+        'REST API for managing beta software defect reports. '
+        'Multi-tenant SaaS deployment via django-tenants -- every '
+        'request must hit a tenant subdomain (e.g. acme.localhost). '
+        'Authentication is JWT via /api/token/.'
+    ),
+    'VERSION': '2.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'TAGS': [
+        {'name': 'Authentication', 'description': 'JWT token obtain and refresh.'},
+        {'name': 'Defect Reports', 'description': 'Submit, list, view, and update defect reports through the role-enforced status workflow.'},
+        {'name': 'Comments', 'description': 'Comments threaded under defect reports.'},
+        {'name': 'Products', 'description': 'Beta products under test.'},
+        {'name': 'Metrics', 'description': 'Developer effectiveness classification per Sprint 3 §22-24.'},
+    ],
+}
