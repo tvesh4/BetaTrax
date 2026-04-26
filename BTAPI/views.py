@@ -7,6 +7,7 @@ from .models import *
 from .serializer import *
 from django.shortcuts import get_object_or_404
 from .utils import *
+from .metrics import classify_developer_effectiveness
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -69,21 +70,9 @@ def get_full_report(request, id):
 @permission_classes([IsAuthenticated])
 def get_developer_metric(request, id):
     developer = get_object_or_404(Developer, user__username=id.title())
-
-    fixed_count = developer.fixedCount
-    reopened_count = developer.reopenedCount
-
-    report = "Insufficient data"
-    if fixed_count >= 20:
-        ratio = reopened_count / fixed_count
-        match ratio:
-            case val if val < (1/32):
-                report = "Good"
-            case val if val < (1/8):
-                report = "Fair"
-            case _:
-                report = "Poor"
-
+    report = classify_developer_effectiveness(
+        developer.fixedCount, developer.reopenedCount
+    )
     return Response({"report": report})
 
 @api_view(['PATCH'])
