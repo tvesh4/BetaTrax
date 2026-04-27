@@ -212,12 +212,10 @@ API documentation endpoints (drf-spectacular):
 
 ## Sprint 3 Contributions
 
-> **TEAM: please replace the bullets below with each member's actual Sprint 3 contributions before submission.**
-
-- **Lam Chin Yui:** *[TODO: Sprint 3 contributions]*
-- **Lai Tsz Ng:** *[TODO: Sprint 3 contributions]*
-- **Wang Yam Yuk:** Multi-tenancy implementation (django-tenants + PostgreSQL, `Client`/`Domain` models, `bootstrap_tenants` management command); developer-effectiveness classifier (`BTAPI/metrics.py`) with full statement + branch coverage; automated endpoint tests (`EndpointSmokeTests`, `ClassifierTests`); SQLite-backed test settings module; API documentation via drf-spectacular (Swagger UI + ReDoc + exported `schema.yml`); README, CLAUDE, and demo-runbook updates.
-- **Kumar Tvesha Sanjay:** *[TODO: Sprint 3 contributions]*
+- **Lam Chin Yui:** *Product Backlog, Use Cases*
+- **Lai Tsz Ng:** *Source Code*
+- **Wang Yam Yuk:** *Source Code*
+- **Kumar Tvesha Sanjay:** *API Documentation*
 
 ## Team Members & Contributions (Sprint 1 + Sprint 2)
 - **Lam Chin Yui:** Product Backlog, Partial Domain Model
