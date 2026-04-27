@@ -66,10 +66,13 @@ python3 manage.py migrate_schemas             # tenant schemas (none yet, no-op 
 python3 manage.py bootstrap_tenants
 ```
 
-This idempotently creates:
+This idempotently creates the public tenant plus the two demo tenants prescribed by the Final Review setup spec (all sample-user passwords are `pw`):
+
 - The **public** tenant (admin/management, no API data).
-- The **ACME Corp** tenant (`acme.localhost`) with users `AcmePo`, `AcmeDev`, `AcmeTester` (password `pw`), one product `AcmeProd1`, one defect `AcmeDef1`.
-- The **Globex** tenant (`globex.localhost`) with users `GlobexPo`, `GlobexDev`, `GlobexTester` (password `pw`), one product `GlobexProd1`, one defect `GlobexDef1`.
+- **SE Tenant 1** (`se1.localhost`) — users `user_1`–`user_5` plus `Tester_1` (email `icyreward@gmail.com`), product `prod_1` (PO=`user_1`, dev=`user_2`), one Assigned defect `Dr1` titled "Unable to search" (Severity Major / Priority High, submitted 2026-03-25 10:53, assigned to `user_2`).
+- **SE Tenant 2** (`se2.localhost`) — users `user_6`–`user_8` plus `Tester_1`, product `prod_1` (same primary key, different schema; PO=`user_6`, dev=`user_7`), one Assigned defect `Dr1` titled "Hit count incorrect" (Severity Minor / Priority High, submitted 2026-04-27 15:37, assigned to `user_7`) with two comments dated 2026-04-26. `user_7` is seeded with `fixedCount=8`, `reopenedCount=1` for the developer-effectiveness demo. `user_8` is in the `Developer` group but is not the FK-linked dev of `prod_1` (model limitation, see below).
+
+The command also drops obsolete `acme`/`globex` schemas if present, so it's safe to re-run on a database created by the previous bootstrap.
 
 ### 6. Create a superuser for the public admin
 
@@ -90,21 +93,21 @@ python3 manage.py runserver
 In another terminal:
 
 ```bash
-# 1. Acquire a token in ACME — must succeed
-curl -X POST http://acme.localhost:8000/api/token/ \
+# 1. Acquire a token in SE Tenant 1 — must succeed
+curl -X POST http://se1.localhost:8000/api/token/ \
     -H "Content-Type: application/json" \
-    -d '{"username":"AcmePo","password":"pw"}'
+    -d '{"username":"user_1","password":"pw"}'
 
-# 2. Same user, Globex tenant — must fail with 401 (user does not exist there)
-curl -X POST http://globex.localhost:8000/api/token/ \
+# 2. Same user, SE Tenant 2 — must fail with 401 (user does not exist there)
+curl -X POST http://se2.localhost:8000/api/token/ \
     -H "Content-Type: application/json" \
-    -d '{"username":"AcmePo","password":"pw"}'
+    -d '{"username":"user_1","password":"pw"}'
 
-# 3. Per-tenant data isolation — each list contains only its own defect
-curl -H "Authorization: Bearer <ACME_ACCESS_TOKEN>" \
-    http://acme.localhost:8000/api/reports/ALL/
-curl -H "Authorization: Bearer <GLOBEX_ACCESS_TOKEN>" \
-    http://globex.localhost:8000/api/reports/ALL/
+# 3. Per-tenant data isolation — each list contains only its own defect Dr1
+curl -H "Authorization: Bearer <SE1_ACCESS_TOKEN>" \
+    http://se1.localhost:8000/api/reports/ALL/
+curl -H "Authorization: Bearer <SE2_ACCESS_TOKEN>" \
+    http://se2.localhost:8000/api/reports/ALL/
 ```
 
 `*.localhost` resolves to `127.0.0.1` automatically on macOS — no `/etc/hosts` edit is required.
@@ -135,7 +138,7 @@ python3 manage.py spectacular --color --file schema.yml
 
 A complementary [Postman collection](postman/collections/) lives under `postman/` with example requests for each endpoint.
 
-> ⚠️ The schema is tenant-agnostic. When testing endpoints, substitute the tenant subdomain — e.g. `acme.localhost:8000` instead of `localhost:8000`.
+> ⚠️ The schema is tenant-agnostic. When testing endpoints, substitute the tenant subdomain — e.g. `se1.localhost:8000` instead of `localhost:8000`.
 
 ## Testing & Coverage
 
@@ -182,12 +185,15 @@ Step 3 must show `100.0%` under `Cover` for `BTAPI/metrics.py` with an empty `Mi
 - **Email Simulation:** Emails are still configured to output to the console/logs to verify PBI-1 and PBI-4 notification requirements without external SMTP setup.
 
 ## Key Assumptions for Sprint 3 Increment
-- **Multi-Tenancy Support:**
-- **Developer Metrics**
-- **Automated Testing**
+- **Multi-Tenancy Support:** Each customer (a software development company) gets its own PostgreSQL schema via `django-tenants`. Tenant routing is hostname-based (`se1.localhost`, `se2.localhost`). JWT tokens are tenant-scoped — a token issued by one tenant is meaningless against another. Tenants are bootstrapped through the `bootstrap_tenants` management command; live onboarding is supported via `Client.objects.create(...)` plus a `Domain.objects.create(...)` row (the underlying schema is created automatically because `Client.auto_create_schema = True`).
+- **Developer Metrics:** A new pure function `BTAPI.metrics.classify_developer_effectiveness(fixed, reopened)` returns one of `Insufficient data` (fixed < 20), `Good` (ratio < 1/32), `Fair` (ratio < 1/8), or `Poor` (otherwise). Exposed at `GET /api/metric/<username>/`. The classifier is intentionally conservative on small samples — fewer than 20 fixed defects yields `Insufficient data` rather than a noisy verdict.
+- **Automated Testing:** Sixteen tests under `BTAPI/tests.py` — ten happy-path endpoint smokes (one per endpoint method, satisfying §38) plus six classifier unit tests that produce 100% statement and branch coverage on `BTAPI/metrics.py` (the §25 grading hook). Tests run under `BTConfig.settings_test`, a SQLite-backed module that strips `django_tenants` for speed; tenant isolation is therefore not exercised by the suite (see Limitations).
 
 ## Limitations / Functionality Not Working Correctly
 - **Self-Service Registration:** New Product Owners and Developers must still be created by a Superuser via `/admin` before they can be assigned to products or reports.
+- **Single Developer per Product:** `Product.devId` is a single FK to `auth.User`. The Final Review setup spec lists two developers (`user_7` and `user_8`) for SE Tenant 2's product; the bootstrap therefore links `user_7` only and seeds `user_8` as a `Developer` in the tenant without an FK to the product. Promoting `devId` to `ManyToManyField` is queued for Sprint 4.
+- **Tenant-Aware Test Pass Pending:** The automated suite runs on SQLite without `django_tenants`; multi-tenant isolation was validated via the manual smoke test in `docs/sprint-3-demo-runbook.md` §1. A Postgres-backed test pass remains on the Sprint 4 backlog.
+- **Latent `.title()` Lookups in `views.py`:** Most URL-id lookups still call `.title()` (defect/comment/update endpoints), so seeded IDs are TitleCase (`Dr1`, `Cmt1`, `Cmt2`) to remain stable. The metric endpoint was fixed in Sprint 3 so spec-compliant lowercase usernames resolve.
 
 ## API Endpoints Implemented
 
