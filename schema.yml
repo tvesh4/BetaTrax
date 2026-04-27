@@ -1,0 +1,525 @@
+openapi: 3.0.3
+info:
+  title: BetaTrax API
+  version: 2.0.0
+  description: REST API for managing beta software defect reports. Multi-tenant SaaS
+    deployment via django-tenants -- every request must hit a tenant subdomain (e.g.
+    acme.localhost). Authentication is JWT via /api/token/.
+paths:
+  /api/comment/{id}/:
+    post:
+      operationId: comment_create
+      summary: Post a comment on a defect report
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Comment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+  /api/defect/:
+    post:
+      operationId: defect_create
+      summary: Submit a new defect report
+      tags:
+      - Defect Reports
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefectReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DefectReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DefectReport'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectReport'
+          description: ''
+  /api/defect/{id}/:
+    get:
+      operationId: defect_retrieve
+      summary: Get full detail of a defect report
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Defect Reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectReport'
+          description: ''
+  /api/metric/{id}/:
+    get:
+      operationId: metric_retrieve
+      summary: Get developer effectiveness classification
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Metrics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeveloperMetricResponse'
+          description: ''
+  /api/product/:
+    post:
+      operationId: product_create
+      summary: Register a new product
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+  /api/reports/{status}/:
+    get:
+      operationId: reports_list
+      summary: List defect reports filtered by status
+      parameters:
+      - in: path
+        name: status
+        schema:
+          type: string
+        required: true
+      tags:
+      - Defect Reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportLite'
+          description: ''
+  /api/reports/assigned/{id}/:
+    get:
+      operationId: reports_assigned_list
+      summary: List ASSIGNED reports for a developer
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Defect Reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportLite'
+          description: ''
+  /api/token/:
+    post:
+      operationId: token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      summary: Obtain a JWT access + refresh token pair
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/token/refresh/:
+    post:
+      operationId: token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      summary: Exchange a refresh token for a new access token
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/update/{id}/:
+    patch:
+      operationId: update_partial_update
+      summary: Update report status, severity, priority, or duplicate parent
+      parameters:
+      - in: query
+        name: dev
+        schema:
+          type: string
+        description: User ID of the developer to (re)assign this report to.
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Defect ID of the parent report (used when marking this report
+          as a duplicate).
+      - in: query
+        name: priority
+        schema:
+          type: string
+        description: New priority (Low, Medium, High, Critical).
+      - in: query
+        name: severity
+        schema:
+          type: string
+        description: New severity (Low, Minor, Major, Critical).
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: New status (e.g. Open, Assigned, Fixed, Resolved, Reopened, Cannot
+          Reproduce, Duplicate, Rejected). Role-enforced.
+      tags:
+      - Defect Reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefectReport'
+          description: ''
+components:
+  schemas:
+    BlankEnum:
+      enum:
+      - ''
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        authorUsername:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          readOnly: true
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - authorUsername
+      - content
+      - createdAt
+      - id
+    DefectReport:
+      type: object
+      properties:
+        id:
+          type: string
+        testerUsername:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          readOnly: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+          readOnly: true
+        children:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        parent:
+          type: string
+        productVersion:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        reproductionSteps:
+          type: string
+        submittedAt:
+          type: string
+          format: date-time
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        severity:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/SeverityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        priority:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        productId:
+          type: string
+        testerId:
+          type: integer
+          readOnly: true
+        assignedToId:
+          type: integer
+          nullable: true
+      required:
+      - children
+      - comments
+      - description
+      - id
+      - productVersion
+      - reproductionSteps
+      - status
+      - submittedAt
+      - testerId
+      - testerUsername
+      - title
+    DeveloperMetricResponse:
+      type: object
+      properties:
+        report:
+          type: string
+      required:
+      - report
+    NullEnum:
+      enum:
+      - null
+    PriorityEnum:
+      enum:
+      - Low
+      - Medium
+      - High
+      - Critical
+      type: string
+      description: |-
+        * `Low` - Low
+        * `Medium` - Medium
+        * `High` - High
+        * `Critical` - Critical
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        currentVersion:
+          type: string
+        isActiveBeta:
+          type: boolean
+        ownerId:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          readOnly: true
+      required:
+      - currentVersion
+      - description
+      - displayName
+      - id
+      - isActiveBeta
+      - ownerId
+    ReportLite:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+      required:
+      - id
+      - title
+    SeverityEnum:
+      enum:
+      - Low
+      - Minor
+      - Major
+      - Critical
+      type: string
+      description: |-
+        * `Low` - Low
+        * `Minor` - Minor
+        * `Major` - Major
+        * `Critical` - Critical
+    StatusEnum:
+      enum:
+      - New
+      - Open
+      - Assigned
+      - Cannot Reproduce
+      - Duplicate
+      - Rejected
+      - Fixed
+      - Reopened
+      - Resolved
+      type: string
+      description: |-
+        * `New` - New
+        * `Open` - Open
+        * `Assigned` - Assigned
+        * `Cannot Reproduce` - Cannot Reproduce
+        * `Duplicate` - Duplicate
+        * `Rejected` - Rejected
+        * `Fixed` - Fixed
+        * `Reopened` - Reopened
+        * `Resolved` - Resolved
+    TokenObtainPair:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - password
+      - refresh
+      - username
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+- name: Authentication
+  description: JWT token obtain and refresh.
+- name: Defect Reports
+  description: Submit, list, view, and update defect reports through the role-enforced
+    status workflow.
+- name: Comments
+  description: Comments threaded under defect reports.
+- name: Products
+  description: Beta products under test.
+- name: Metrics
+  description: Developer effectiveness classification per Sprint 3 §22-24.

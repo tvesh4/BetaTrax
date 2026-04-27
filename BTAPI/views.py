@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsUser, IsDeveloper, IsOwner
@@ -8,10 +8,15 @@ from .serializer import *
 from django.shortcuts import get_object_or_404
 from .utils import *
 from .metrics import classify_developer_effectiveness
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer
 from drf_spectacular.types import OpenApiTypes
 
-@extend_schema(tags=['Defect Reports'], summary='Submit a new defect report')
+@extend_schema(
+    tags=['Defect Reports'],
+    summary='Submit a new defect report',
+    request=DefectReportSerializer,
+    responses={201: DefectReportSerializer},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def post_new_report(request):
@@ -25,7 +30,11 @@ def post_new_report(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@extend_schema(tags=['Defect Reports'], summary='List defect reports filtered by status')
+@extend_schema(
+    tags=['Defect Reports'],
+    summary='List defect reports filtered by status',
+    responses={200: ReportLiteSerializer(many=True)},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_reports(request, status):
@@ -51,7 +60,11 @@ def get_reports(request, status):
     serializer = ReportLiteSerializer(reports, many=True)
     return Response(serializer.data)
 
-@extend_schema(tags=['Defect Reports'], summary='List ASSIGNED reports for a developer')
+@extend_schema(
+    tags=['Defect Reports'],
+    summary='List ASSIGNED reports for a developer',
+    responses={200: ReportLiteSerializer(many=True)},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsDeveloper | IsOwner])
 def get_assigned_defects(request, id):
@@ -64,7 +77,11 @@ def get_assigned_defects(request, id):
         return Response({"message": "No assigned reports for this developer"}, status=200)
     return Response(data)
 
-@extend_schema(tags=['Defect Reports'], summary='Get full detail of a defect report')
+@extend_schema(
+    tags=['Defect Reports'],
+    summary='Get full detail of a defect report',
+    responses={200: DefectReportSerializer},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_full_report(request, id):
@@ -72,7 +89,16 @@ def get_full_report(request, id):
     serializer = DefectReportSerializer(report)
     return Response(serializer.data)
 
-@extend_schema(tags=['Metrics'], summary='Get developer effectiveness classification')
+@extend_schema(
+    tags=['Metrics'],
+    summary='Get developer effectiveness classification',
+    responses={
+        200: inline_serializer(
+            name='DeveloperMetricResponse',
+            fields={'report': serializers.CharField()},
+        ),
+    },
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_developer_metric(request, id):
@@ -85,6 +111,8 @@ def get_developer_metric(request, id):
 @extend_schema(
     tags=['Defect Reports'],
     summary='Update report status, severity, priority, or duplicate parent',
+    request=None,
+    responses={200: DefectReportSerializer},
     parameters=[
         OpenApiParameter(
             name='status', type=OpenApiTypes.STR, required=False,
@@ -195,7 +223,12 @@ def patch_update_report(request, id):
     serializer = DefectReportSerializer(report)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-@extend_schema(tags=['Comments'], summary='Post a comment on a defect report')
+@extend_schema(
+    tags=['Comments'],
+    summary='Post a comment on a defect report',
+    request=CommentSerializer,
+    responses={201: CommentSerializer},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def post_comment(request, id):
@@ -206,7 +239,12 @@ def post_comment(request, id):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@extend_schema(tags=['Products'], summary='Register a new product')
+@extend_schema(
+    tags=['Products'],
+    summary='Register a new product',
+    request=ProductSerializer,
+    responses={201: ProductSerializer},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsOwner | IsDeveloper])
 def post_new_product(request):
