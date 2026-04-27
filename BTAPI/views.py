@@ -163,7 +163,10 @@ def patch_update_report(request, id):
             case 'New':
                 # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
                 if is_owner and (new_status == 'Open' or new_status in ('Duplicate', 'Rejected')):
-                    if new_status == 'Rejected':
+                    if new_status == 'Open':
+                        report.status = new_status
+                        status_changed = True
+                    elif new_status == 'Rejected':
                         report.status = new_status
                         status_changed = True
                     elif new_status == 'Duplicate':
