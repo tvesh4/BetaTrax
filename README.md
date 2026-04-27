@@ -181,9 +181,12 @@ Step 3 must show `100.0%` under `Cover` for `BTAPI/metrics.py` with an empty `Mi
 - **Duplicate Logic:** Marking a report as a duplicate via the `parent_report` field automatically triggers a terminal "Closed" state to prevent redundant work.
 - **Email Simulation:** Emails are still configured to output to the console/logs to verify PBI-1 and PBI-4 notification requirements without external SMTP setup.
 
+## Key Assumptions for Sprint 3 Increment
+- **Multi-Tenancy Support:**
+- **Developer Metrics**
+- **Automated Testing**
 
 ## Limitations / Functionality Not Working Correctly
-- **Circular Duplicates:** While the API prevents a report from duplicating itself, deep circular linking (A -> B -> A) is not yet blocked by the database constraints.
 - **Self-Service Registration:** New Product Owners and Developers must still be created by a Superuser via `/admin` before they can be assigned to products or reports.
 
 ## API Endpoints Implemented
