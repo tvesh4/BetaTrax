@@ -148,17 +148,48 @@ class EndpointSmokeTests(APITestCase):
         ids = [item['id'] for item in response.data]
         self.assertIn('Def001', ids)
 
+    def test_get_reports_closed_returns_terminal_states(self):
+        """GET /api/reports/CLOSED/ — union of Cannot Reproduce, Duplicate, Rejected.
+
+        Regression guard: previously referenced the removed Status.CLOSED
+        attribute and 500'd.
+        """
+        DefectReport.objects.create(
+            id='Def010', productId=self.product, productVersion='1.0',
+            title='Dup', description='d', reproductionSteps='s',
+            testerId=self.tester, status=DefectReport.Status.DUPLICATE,
+        )
+        DefectReport.objects.create(
+            id='Def011', productId=self.product, productVersion='1.0',
+            title='Rej', description='d', reproductionSteps='s',
+            testerId=self.tester, status=DefectReport.Status.REJECTED,
+        )
+        self.client.force_authenticate(user=self.po)
+        response = self.client.get('/api/reports/CLOSED/')
+        self.assertEqual(response.status_code, 200)
+        ids = {item['id'] for item in response.data}
+        self.assertEqual(ids, {'Def010', 'Def011'})
+
     def test_get_assigned_defects_returns_ok(self):
         """#5: GET /api/reports/assigned/<dev.pk>/ — developer's ASSIGNED tasks.
 
-        The seed defect is in 'New' state (not 'Assigned'), so the endpoint
-        returns the 'No assigned reports' message.  We pass dev.pk as the
-        URL parameter to sidestep the known bug at views.py:55 that does
-        `assignedToId=id.title()` against an FK column.
+        Seeds an additional defect in 'Assigned' state so the endpoint
+        exercises the populated-list branch rather than the empty
+        'No assigned reports' message.  We pass dev.pk as the URL parameter
+        to sidestep the latent bug where assignedToId is filtered with
+        `.title()` against an FK column.
         """
+        DefectReport.objects.create(
+            id='Def020', productId=self.product, productVersion='1.0',
+            title='Assigned task', description='d', reproductionSteps='s',
+            testerId=self.tester, status=DefectReport.Status.ASSIGNED,
+            assignedToId=self.dev,
+        )
         self.client.force_authenticate(user=self.dev)
         response = self.client.get(f'/api/reports/assigned/{self.dev.pk}/')
         self.assertEqual(response.status_code, 200)
+        ids = [item['id'] for item in response.data]
+        self.assertIn('Def020', ids)
 
     def test_get_full_report_returns_defect(self):
         """#6: GET /api/defect/<id>/ — full defect detail.
@@ -210,6 +241,26 @@ class EndpointSmokeTests(APITestCase):
         response = self.client.patch('/api/update/def001/?status=Open')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Open')
+
+    def test_patch_severity_priority_dev_by_owner_applies(self):
+        """PATCH /api/update/<id>/?severity=&priority=&dev= — owner can set all three."""
+        self.client.force_authenticate(user=self.po)
+        response = self.client.patch(
+            f'/api/update/def001/?severity=Major&priority=High&dev={self.dev.pk}'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['severity'], 'Major')
+        self.assertEqual(response.data['priority'], 'High')
+        self.defect.refresh_from_db()
+        self.assertEqual(self.defect.assignedToId_id, self.dev.pk)
+
+    def test_patch_severity_by_non_owner_is_ignored(self):
+        """Tester PATCHing severity must not mutate the field."""
+        self.client.force_authenticate(user=self.tester)
+        response = self.client.patch('/api/update/def001/?severity=Critical')
+        self.assertEqual(response.status_code, 200)
+        self.defect.refresh_from_db()
+        self.assertIsNone(self.defect.severity)
 
     def test_post_comment_creates_comment(self):
         """#8: POST /api/comment/<id>/ — post a comment on a defect.

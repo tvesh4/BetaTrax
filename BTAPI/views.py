@@ -52,7 +52,11 @@ def get_reports(request, status):
         case "REOPENED":
             reports = DefectReport.objects.filter(status=DefectReport.Status.REOPENED)
         case "CLOSED":
-            reports = DefectReport.objects.filter(status=DefectReport.Status.CLOSED)
+            reports = DefectReport.objects.filter(status__in=[
+                DefectReport.Status.CANNOT_REPRODUCE,
+                DefectReport.Status.DUPLICATE,
+                DefectReport.Status.REJECTED,
+            ])
         case "ALL":
             reports = DefectReport.objects.all()
         case _:
@@ -122,12 +126,12 @@ def get_developer_metric(request, id):
         OpenApiParameter(
             name='severity', type=OpenApiTypes.STR, required=False,
             location=OpenApiParameter.QUERY,
-            description='New severity (Low, Minor, Major, Critical).',
+            description='New severity (Low, Minor, Major, Critical). Owner-only; silently ignored if the caller is not in the Owner group.',
         ),
         OpenApiParameter(
             name='priority', type=OpenApiTypes.STR, required=False,
             location=OpenApiParameter.QUERY,
-            description='New priority (Low, Medium, High, Critical).',
+            description='New priority (Low, Medium, High, Critical). Owner-only; silently ignored if the caller is not in the Owner group.',
         ),
         OpenApiParameter(
             name='parent', type=OpenApiTypes.STR, required=False,
@@ -137,7 +141,7 @@ def get_developer_metric(request, id):
         OpenApiParameter(
             name='dev', type=OpenApiTypes.STR, required=False,
             location=OpenApiParameter.QUERY,
-            description='User ID of the developer to (re)assign this report to.',
+            description='User PK of the developer to (re)assign this report to. Owner-only; silently ignored if the caller is not in the Owner group.',
         ),
     ],
 )
@@ -221,12 +225,12 @@ def patch_update_report(request, id):
     if report.productId.ownerId and report.productId.ownerId.email and status_changed:
         send_po_update_email(report)
 
-    if dev_id:
+    if dev_id and is_owner:
         report.assignedToId_id = dev_id
-    if new_severity: 
+    if new_severity and is_owner:
         if new_severity in DefectReport.Severity:
             report.severity = new_severity
-    if new_priority: 
+    if new_priority and is_owner:
         if new_priority in DefectReport.Priority:
             report.priority = new_priority
     report.save()

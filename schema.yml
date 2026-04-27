@@ -246,7 +246,8 @@ paths:
         name: dev
         schema:
           type: string
-        description: User ID of the developer to (re)assign this report to.
+        description: User PK of the developer to (re)assign this report to. Owner-only;
+          silently ignored if the caller is not in the Owner group.
       - in: path
         name: id
         schema:
@@ -262,12 +263,14 @@ paths:
         name: priority
         schema:
           type: string
-        description: New priority (Low, Medium, High, Critical).
+        description: New priority (Low, Medium, High, Critical). Owner-only; silently
+          ignored if the caller is not in the Owner group.
       - in: query
         name: severity
         schema:
           type: string
-        description: New severity (Low, Minor, Major, Critical).
+        description: New severity (Low, Minor, Major, Critical). Owner-only; silently
+          ignored if the caller is not in the Owner group.
       - in: query
         name: status
         schema:
