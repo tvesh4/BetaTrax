@@ -8,6 +8,8 @@ email/
 .postman/
 postman/
 Sprint3/
+# course handouts (kept locally for reference, not part of the codebase)
+BetaTrax_Final_*.pdf
 # coverage.py outputs
 .coverage
 htmlcov/
