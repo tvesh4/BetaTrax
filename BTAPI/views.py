@@ -102,7 +102,7 @@ def get_full_report(request, id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_developer_metric(request, id):
-    developer = get_object_or_404(Developer, user__username=id.title())
+    developer = get_object_or_404(Developer, user__username=id)
     report = classify_developer_effectiveness(
         developer.fixedCount, developer.reopenedCount
     )

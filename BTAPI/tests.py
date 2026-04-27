@@ -174,12 +174,11 @@ class EndpointSmokeTests(APITestCase):
     def test_get_developer_metric_returns_classification(self):
         """#10: GET /api/metric/<id>/ — developer effectiveness classification.
 
-        Lowercase URL parameter ('dev') deliberately exercises the
-        `.title()` lookup convention.  fixedCount is 0 so the
-        classifier returns 'Insufficient data'.
+        URL parameter is the developer's username verbatim.  fixedCount
+        is 0 so the classifier returns 'Insufficient data'.
         """
         self.client.force_authenticate(user=self.dev)
-        response = self.client.get('/api/metric/dev/')
+        response = self.client.get('/api/metric/Dev/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['report'], 'Insufficient data')
 
