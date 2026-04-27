@@ -21,9 +21,12 @@ Group F of COMP3297 2025-2026 Semester 2
 - **Duplicate Logic:** Marking a report as a duplicate via the `parent_report` field automatically triggers a terminal "Closed" state to prevent redundant work.
 - **Email Simulation:** Emails are still configured to output to the console/logs to verify PBI-1 and PBI-4 notification requirements without external SMTP setup.
 
+## Key Assumptions for Sprint 3 Increment
+- **Multi-Tenancy Support:**
+- **Developer Metrics**
+- **Automated Testing**
 
 ## Limitations / Functionality Not Working Correctly
-- **Circular Duplicates:** While the API prevents a report from duplicating itself, deep circular linking (A -> B -> A) is not yet blocked by the database constraints.
 - **Self-Service Registration:** New Product Owners and Developers must still be created by a Superuser via `/admin` before they can be assigned to products or reports.
 
 ## API Endpoints Implemented 
@@ -31,7 +34,7 @@ Group F of COMP3297 2025-2026 Semester 2
 - `POST /api/comment/<str:id>/` - Post a new comment on a defect report. (PBI-6 in Sprint 1)
 - `POST /api/defect/` - Submit a new defect report. (PBI-1)
 - `GET /api/reports/<str:status>/` - List reports with support for status filtering (including NEW, OPEN, ASSIGNED, FIXED, RESOLVED, REOPENED, DUPLICATE, REJECTED,and CANNOT REPRODUCE). (PBI-10)
-- `PATCH /api/update/<str:id>/` - Update report status, severity, priority, or link a parent duplicate. (PBI-6, 7, 8, 9)
+- `PATCH /api/update/<str:id>/?status=<str:status>&severity=<str:severity>&priority=<str:priority>&parent=<str:parent>` - Update report status, as well as optional severity, priority, and link to a parent duplicate report. (PBI-6, 7, 8, 9)
 - `GET /api/reports/assigned/<str:dev_id>/` - View all active tasks for a specific developer. (PBI-3)
 - `GET /api/defect/<str:id>/` - View full detail of a specific defect report. 
 - `POST /api/token/` - Get authentication token for a specific user with username and password. 

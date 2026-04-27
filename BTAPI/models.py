@@ -126,6 +126,8 @@ class DefectReport(models.Model):
     def clean(self):
         if self.parent and self.id and self.parent.id == self.id:
             raise ValidationError("A report cannot be its own parent.")
+        elif self.parent and self.children and self.parent.id in self.children:
+            raise ValidationError("A report cannot be a parent and child at the same time.")
         super().clean()
 
     def __str__(self):

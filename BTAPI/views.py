@@ -95,48 +95,55 @@ def patch_update_report(request, id):
     status_changed = False
 
     if new_status and new_status.title() in DefectReport.Status:
+        new_status = new_status.title()
         match report.status:
             case 'New':
                 # only if role == "ProductOwner", 'Closed' = Cannot Reproduce, Duplicate, Rejected
-                if is_owner and (new_status.title() == 'Open' or new_status.title() in ('Duplicate', 'Rejected')):
-                    report.status = new_status.title()
-                    status_changed = True
-                    if new_status in ('Duplicate', 'Rejected'):
+                if is_owner and (new_status == 'Open' or new_status in ('Duplicate', 'Rejected')):
+                    if new_status == 'Rejected':
+                        report.status = new_status
+                        status_changed = True
+                    elif new_status == 'Duplicate':
                         if report.parent:
+                            report.status = new_status
+                            status_changed = True
                             if report.parent.testerId.email:
                                 send_duplicate_update_email(report.parent, report)
                                 send_duplicate_update_email(report, report.parent)
                         if new_parent:
-                            new_parent_id = get_object_or_404(DefectReport, id=new_parent)
-                            report.parent_id = new_parent_id
-                            if new_parent_id.testerId.email:
-                                send_duplicate_update_email(new_parent_id, report)
-                                send_duplicate_update_email(report, new_parent_id)
+                            new_parent_id = get_object_or_404(DefectReport, id=new_parent.title())
+                            if new_parent_id != report and new_parent_id not in report.children.all():
+                                report.parent_id = new_parent_id
+                                report.status = new_status
+                                status_changed = True
+                                if new_parent_id.testerId.email:
+                                    send_duplicate_update_email(new_parent_id, report)
+                                    send_duplicate_update_email(report, new_parent_id)
             case ('Open' | 'Reopened'):
                 # only if role == "Developer"
-                if is_developer and new_status.title() == 'Assigned':
-                    report.status = new_status.title()
+                if is_developer and new_status == 'Assigned':
+                    report.status = new_status
                     status_changed = True
                     report.assignedToId = user
             case 'Assigned':
                 # only if role == "Developer", 'Closed' = Cannot Reproduce
                 if is_developer:
-                    if new_status.title() == 'Fixed':
-                        report.status = new_status.title()
+                    if new_status == 'Fixed':
+                        report.status = new_status
                         status_changed = True
                         request.user.developer_profile.fixedCount += 1
                         request.user.developer_profile.save()
-                    elif new_status.title() == 'Cannot Reproduce':
-                        report.status = new_status.title()
+                    elif new_status == 'Cannot Reproduce':
+                        report.status = new_status
                         status_changed = True
             case 'Fixed':
                 # only if role == "ProductOwner"
                 if is_owner:
-                    if new_status.title() == 'Resolved': 
-                        report.status = new_status.title()
+                    if new_status == 'Resolved': 
+                        report.status = new_status
                         status_changed = True
-                    elif new_status.title() == 'Reopened':
-                        report.status = new_status.title()
+                    elif new_status == 'Reopened':
+                        report.status = new_status
                         report.assignedToId.developer_profile.reopenedCount += 1
                         report.assignedToId.developer_profile.save()
                         status_changed = True
