@@ -170,7 +170,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': (
         'REST API for managing beta software defect reports. '
         'Multi-tenant SaaS deployment via django-tenants -- every '
-        'request must hit a tenant subdomain (e.g. acme.localhost). '
+        'request must hit a tenant subdomain (e.g. se1.localhost). '
         'Authentication is JWT via /api/token/.'
     ),
     'VERSION': '2.0.0',

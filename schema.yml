@@ -4,7 +4,7 @@ info:
   version: 2.0.0
   description: REST API for managing beta software defect reports. Multi-tenant SaaS
     deployment via django-tenants -- every request must hit a tenant subdomain (e.g.
-    acme.localhost). Authentication is JWT via /api/token/.
+    se1.localhost). Authentication is JWT via /api/token/.
 paths:
   /api/comment/{id}/:
     post:
