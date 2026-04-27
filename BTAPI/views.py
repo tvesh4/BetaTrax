@@ -212,7 +212,8 @@ def patch_update_report(request, id):
                     if new_status == 'Resolved': 
                         report.status = new_status
                         status_changed = True
-                    elif new_status == 'Reopened':
+                if not (is_developer or is_owner):
+                    if new_status == 'Reopened':
                         report.status = new_status
                         report.assignedToId.developer_profile.reopenedCount += 1
                         report.assignedToId.developer_profile.save()
