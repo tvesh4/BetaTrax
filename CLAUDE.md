@@ -59,10 +59,10 @@ coverage report -m --include='BTAPI/metrics.py'
 - `POST /api/token/` — Login, returns JWT access + refresh tokens
 - `POST /api/token/refresh/` — Refresh access token
 - `POST /api/defect/` — Submit new defect report (`IsAuthenticated`)
-- `GET /api/reports/<status>/` — List reports by status; supports `NEW`, `OPEN`, `ASSIGNED`, `FIXED`, `RESOLVED`, `REOPENED`, `CLOSED`, `ALL`
+- `GET /api/reports/<status>/` — List reports by status; supports `NEW`, `OPEN`, `ASSIGNED`, `FIXED`, `RESOLVED`, `REOPENED`, `CLOSED`, `ALL`. `CLOSED` returns the union of `Cannot Reproduce`, `Duplicate`, `Rejected` (the three terminal states that replaced the legacy single `CLOSED` value).
 - `GET /api/reports/assigned/<id>/` — List ASSIGNED reports for a developer (`IsDeveloper | IsOwner`)
 - `GET /api/defect/<id>/` — Full report details
-- `PATCH /api/update/<id>/` — Update report status, severity, priority, parent (duplicate link), or reassign developer; role-enforced transitions. Mutations come from query params (`?status=...&severity=...&priority=...&parent=...&dev=...`).
+- `PATCH /api/update/<id>/` — Update report status, severity, priority, parent (duplicate link), or reassign developer; role-enforced transitions. Mutations come from query params (`?status=...&severity=...&priority=...&parent=...&dev=...`). `severity`, `priority`, and `dev` reassignment require the caller to be in the `Owner` group; non-Owner mutations are silently ignored (matching the silent-skip pattern used by the status-transition logic).
 - `POST /api/comment/<id>/` — Post a comment on a report
 - `POST /api/product/` — Register a new product (`IsOwner | IsDeveloper`)
 - `GET /api/metric/<id>/` — Developer effectiveness classification (`IsAuthenticated`); `<id>` is the developer's username
@@ -131,10 +131,10 @@ Tests under `settings_test` do **not** exercise tenant isolation — a second pa
 - `BTAPI` is dual-listed in `SHARED_APPS` and `TENANT_APPS`, so per-tenant data tables (`Developer`, `Product`, `DefectReport`, `Comment`) get created in *both* the public schema and every tenant schema. Isolation still works correctly via the router; the public-schema copies are unused shadow tables. Cleanup would split `BTAPI` into a `BTTenants` app for `Client`/`Domain` plus a tenant-only `BTAPI`.
 - `views.py` has a few latent bugs partially sidestepped by test-fixture conventions:
   - `get_developer_metric` had `.title()` on its URL `id`; this was **fixed** in commit `291d51f` so spec-compliant lowercase usernames like `user_7` resolve. Other endpoints still call `.title()` on URL params (e.g. defect/comment/update lookups), so report IDs must be TitleCase (the seeded `Dr1`/`Cmt1`/`Cmt2` survive `.title()` correctly).
-  - `get_assigned_defects` filters `assignedToId=id.title()`, an FK column, with a string — works only when callers pass the user PK (an integer); a username will silently 0-match.
+  - `get_assigned_defects` filters `assignedToId=id.title()`, an FK column, with a string — works only when callers pass the user PK (an integer); a username will silently 0-match. The endpoint smoke test passes `dev.pk` to sidestep this.
   - `patch_update_report` does `new_status in ('Duplicate', 'Rejected')` after reassigning `new_status = new_status.title()` above (no behavioral effect because both literals are already title-cased).
   - Product can only link a single developer (`Product.devId` is a single FK), so SE Tenant 2's product seeds `user_7` only; `user_8` exists as a `Developer` in the tenant but is not FK-attached to `prod_1`.
-- `Product.devId` not being M2M is the reason a real-world product can't reflect "two developers per product" — promoting it to ManyToMany is on the Sprint 4 cleanup list.
+- `Product.devId` not being M2M is the reason a real-world product can't reflect "two developers per product" — promoting it to ManyToMany is out of scope for Release 2 (no Sprint 4 is planned).
 - Circular duplicates: A → A is blocked by `DefectReport.clean()`, but deeper cycles (A → B → A) are not enforced.
 - The 50+ migration history from the SQLite era was not squashed.
 

@@ -6,7 +6,7 @@ The four Sprint 3 deliverables, in the order we will present them:
 
 1. **Multi-tenancy** (`django-tenants` + PostgreSQL)
 2. **API documentation** (`drf-spectacular` Swagger UI / ReDoc)
-3. **Automated endpoint tests** (10 representative happy-path tests, one per endpoint method)
+3. **Automated endpoint tests** (13 endpoint tests — one happy-path per endpoint method, plus three role-gate / terminal-state cases)
 4. **Developer effectiveness metric** (`BTAPI/metrics.py` + 100% statement & branch coverage)
 
 This order tells a story: *we set up the multi-tenant backbone → we documented every endpoint → we automated tests against them → we pinned full coverage on the new business-logic module.*
@@ -166,7 +166,7 @@ curl -s -H "Authorization: Bearer $SE2_TOKEN" http://se2.localhost:8000/api/repo
 
 Acknowledge upfront, before they ask:
 
-> "Two known limitations we'd address next: (1) the `BTAPI` app is dual-listed in shared and tenant app lists, which creates unused shadow tables in the public schema — isolation still works correctly via the router, but it's a cleanup we'd do in Sprint 4. (2) Our automated test suite uses an in-memory SQLite config to run fast, so it doesn't exercise the tenants layer. We did the multi-tenant smoke test you just saw manually."
+> "Two known limitations we'd address in a follow-on release: (1) the `BTAPI` app is dual-listed in shared and tenant app lists, which creates unused shadow tables in the public schema — isolation still works correctly via the router, but it's a cleanup we'd want to do. (2) Our automated test suite uses an in-memory SQLite config to run fast, so it doesn't exercise the tenants layer. We did the multi-tenant smoke test you just saw manually."
 
 ---
 
@@ -205,7 +205,7 @@ Switch to `http://se1.localhost:8000/api/schema/redoc/` — show the cleaner rea
 
 ### 3.1  Frame (15 s)
 
-> "Sprint 3 §38 asked for one representative test per endpoint method. We wrote ten — covering all eight production endpoints plus the two simplejwt token endpoints."
+> "Sprint 3 §38 asked for one representative test per endpoint method. We wrote ten happy-path tests — covering all eight production endpoints plus the two simplejwt token endpoints — and three additional cases that pin the `CLOSED` terminal-state union and Owner-only `severity`/`priority`/`dev` role gating."
 
 ### 3.2  Run the suite (1 min) — pane C
 
@@ -216,18 +216,19 @@ python3 manage.py test --settings=BTConfig.settings_test BTAPI -v 2
 Expected tail:
 
 ```
-Ran 16 tests in <X>s
+Ran 19 tests in <X>s
 OK
 ```
 
-(16 = 10 endpoint smoke tests + 6 classifier tests.)
+(19 = 13 endpoint smoke tests + 6 classifier tests.)
 
 ### 3.3  Walk the test inventory (2 min)
 
 Open `BTAPI/tests.py` and scroll. Don't read every test — call out:
 
 - `EndpointSmokeTests.setUpTestData` — one fixture: 3 users (Tester / Dev / Po), one Developer profile, one Product, one DefectReport in `New` state.
-- The 10 happy-path tests, named by what they exercise: `test_post_token_…`, `test_post_token_refresh_…`, `test_post_new_report_…`, `test_get_reports_…`, `test_get_assigned_defects_…`, `test_get_full_report_…`, `test_patch_update_report_…`, `test_post_comment_…`, `test_post_new_product_…`, `test_get_developer_metric_…`.
+- The 10 happy-path tests, one per endpoint method, named by what they exercise: `test_post_token_…`, `test_post_token_refresh_…`, `test_post_new_report_…`, `test_get_reports_by_status_…`, `test_get_assigned_defects_…`, `test_get_full_report_…`, `test_patch_update_report_new_to_open`, `test_post_comment_…`, `test_post_new_product_…`, `test_get_developer_metric_…`.
+- Three additional regression / role-gate tests: `test_get_reports_closed_returns_terminal_states` (pins `CLOSED` to the union of Cannot Reproduce/Duplicate/Rejected), `test_patch_severity_priority_dev_by_owner_applies` (positive Owner path on the gated mutations), `test_patch_severity_by_non_owner_is_ignored` (negative path — silent no-op).
 
 ### 3.4  Honest scope statement (45 s)
 
@@ -309,7 +310,7 @@ Expect:
 >
 > 1. **Multi-tenant deployment** — three live tenants, schema-level isolation, hostname-based routing.
 > 2. **API documentation** — five tag groups, every endpoint instrumented, browseable via Swagger and ReDoc.
-> 3. **Automated tests** — sixteen tests passing under a fast SQLite test config.
+> 3. **Automated tests** — nineteen tests passing under a fast SQLite test config.
 > 4. **Effectiveness classifier** — extracted, unit-tested, 100% statement and branch coverage.
 >
 > Total: 30 commits on `dev` since the Sprint 2 tag."
@@ -319,8 +320,8 @@ Expect:
 | Likely question | Short answer |
 |---|---|
 | *Why one schema per tenant instead of a tenant_id column?* | Stronger isolation, simpler queries, lower blast radius if a query forgets the tenant filter. Trade-off is that schema migrations cost more at scale. |
-| *Why don't the automated tests cover multi-tenancy?* | The test config uses in-memory SQLite for speed (full suite < 5s). Multi-tenancy was validated by the manual smoke test you saw in segment 1. A second test pass under real Postgres + tenants is on the Sprint 4 backlog. |
-| *Why only happy-path smoke tests?* | §38 asked for one representative test per endpoint method. Deeper workflow + edge-case coverage is queued for Sprint 4. |
+| *Why don't the automated tests cover multi-tenancy?* | The test config uses in-memory SQLite for speed (full suite < 5s). Multi-tenancy was validated by the manual smoke test you saw in segment 1. A second test pass under real Postgres + tenants is out of scope for Release 2. |
+| *Why only happy-path smoke tests?* | §38 asked for one representative test per endpoint method. Deeper workflow + edge-case coverage is out of scope for Release 2. |
 | *Why is `BTAPI` listed in both SHARED_APPS and TENANT_APPS?* | Convenience during the Sprint 3 cutover — splitting `BTAPI` into a `BTTenants` app for `Client`/`Domain` plus a tenant-only `BTAPI` is a planned cleanup. |
 | *Can we onboard a new tenant live?* | Yes — `Client.objects.create(schema_name='newco', name='NewCo')` followed by a `Domain.objects.create(...)` row. `auto_create_schema=True` runs `CREATE SCHEMA` and the per-tenant migrations on save. |
 
