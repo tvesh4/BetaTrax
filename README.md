@@ -186,19 +186,38 @@ Step 3 must show `100.0%` under `Cover` for `BTAPI/metrics.py` with an empty `Mi
 - **Circular Duplicates:** While the API prevents a report from duplicating itself, deep circular linking (A -> B -> A) is not yet blocked by the database constraints.
 - **Self-Service Registration:** New Product Owners and Developers must still be created by a Superuser via `/admin` before they can be assigned to products or reports.
 
-## API Endpoints Implemented 
-- `POST /api/products/` - Register a new product. (PBI-5)
-- `POST /api/comment/<str:id>/` - Post a new comment on a defect report. (PBI-6 in Sprint 1)
-- `POST /api/defect/` - Submit a new defect report. (PBI-1)
-- `GET /api/reports/<str:status>/` - List reports with support for status filtering (including NEW, OPEN, ASSIGNED, FIXED, RESOLVED, REOPENED, DUPLICATE, REJECTED,and CANNOT REPRODUCE). (PBI-10)
-- `PATCH /api/update/<str:id>/` - Update report status, severity, priority, or link a parent duplicate. (PBI-6, 7, 8, 9)
-- `GET /api/reports/assigned/<str:dev_id>/` - View all active tasks for a specific developer. (PBI-3)
-- `GET /api/defect/<str:id>/` - View full detail of a specific defect report. 
-- `POST /api/token/` - Get authentication token for a specific user with username and password. 
-- `GET /api/metric/<str:id>` - Get effectiveness report of a specific developer. 
+## API Endpoints Implemented
 
-## Team Members & Contributions
-- **Lam Chin Yui: Product Backlog, Partial Domain Model**
-- **Lai Tsz Ng: Communications, UI Storyboards, Source Code**
-- **Wang Yam Yuk: UI Storyboards, Source Code**
-- **Kumar Tvesha Sanjay: Product Backlog, Partial Domain Model**
+Application endpoints:
+- `POST /api/defect/` — Submit a new defect report. (PBI-1)
+- `GET  /api/reports/<str:status>/` — List reports filtered by status (`NEW`, `OPEN`, `ASSIGNED`, `FIXED`, `RESOLVED`, `REOPENED`, `CLOSED`, `ALL`). (PBI-10)
+- `GET  /api/reports/assigned/<str:id>/` — View all `ASSIGNED` reports for a specific developer. (PBI-3)
+- `GET  /api/defect/<str:id>/` — View full detail of a specific defect report.
+- `PATCH /api/update/<str:id>/` — Update report status, severity, priority, parent duplicate link, or reassign a developer. (PBI-6, 7, 8, 9)
+- `POST /api/comment/<str:id>/` — Post a new comment on a defect report. (PBI-6 in Sprint 1)
+- `POST /api/product/` — Register a new product. (PBI-5)
+- `GET  /api/metric/<str:id>/` — Get developer-effectiveness classification (Sprint 3 §22-24). `<id>` is the developer's username.
+
+Authentication endpoints (simplejwt):
+- `POST /api/token/` — Obtain a JWT access + refresh token pair.
+- `POST /api/token/refresh/` — Exchange a refresh token for a new access token.
+
+API documentation endpoints (drf-spectacular):
+- `GET /api/schema/` — Raw OpenAPI 3.0 YAML schema.
+- `GET /api/schema/swagger-ui/` — Interactive Swagger UI.
+- `GET /api/schema/redoc/` — ReDoc (read-only, easier-to-print layout).
+
+## Sprint 3 Contributions
+
+> **TEAM: please replace the bullets below with each member's actual Sprint 3 contributions before submission.**
+
+- **Lam Chin Yui:** *[TODO: Sprint 3 contributions]*
+- **Lai Tsz Ng:** *[TODO: Sprint 3 contributions]*
+- **Wang Yam Yuk:** Multi-tenancy implementation (django-tenants + PostgreSQL, `Client`/`Domain` models, `bootstrap_tenants` management command); developer-effectiveness classifier (`BTAPI/metrics.py`) with full statement + branch coverage; automated endpoint tests (`EndpointSmokeTests`, `ClassifierTests`); SQLite-backed test settings module; API documentation via drf-spectacular (Swagger UI + ReDoc + exported `schema.yml`); README, CLAUDE, and demo-runbook updates.
+- **Kumar Tvesha Sanjay:** *[TODO: Sprint 3 contributions]*
+
+## Team Members & Contributions (Sprint 1 + Sprint 2)
+- **Lam Chin Yui:** Product Backlog, Partial Domain Model
+- **Lai Tsz Ng:** Communications, UI Storyboards, Source Code
+- **Wang Yam Yuk:** UI Storyboards, Source Code
+- **Kumar Tvesha Sanjay:** Product Backlog, Partial Domain Model
