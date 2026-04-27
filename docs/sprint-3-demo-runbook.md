@@ -60,7 +60,7 @@ PGPASSWORD=password psql -h localhost -U admin -d btpostgres \
     -c 'SELECT schema_name, name FROM public."BTAPI_client" ORDER BY schema_name;'
 ```
 
-You should see `acme`, `globex`, `public`.
+You should see `public`, `se1`, `se2`.
 
 ### 0.4  Smoke-test all four demo segments end-to-end (most important step)
 
@@ -78,10 +78,10 @@ Open **three terminal panes** (tmux/iTerm split):
 
 Open **four browser tabs**, in this order:
 
-1. `http://acme.localhost:8000/api/schema/swagger-ui/`
-2. `http://acme.localhost:8000/api/schema/redoc/`
+1. `http://se1.localhost:8000/api/schema/swagger-ui/`
+2. `http://se1.localhost:8000/api/schema/redoc/`
 3. `http://localhost:8000/admin/` (leave on the login page)
-4. *(optional)* `http://globex.localhost:8000/api/schema/swagger-ui/` — to show docs are tenant-agnostic
+4. *(optional)* `http://se2.localhost:8000/api/schema/swagger-ui/` — to show docs are tenant-agnostic
 
 Have **one Postman window** open with the collection from `postman/collections/` loaded as a backup if Swagger misbehaves.
 
@@ -110,32 +110,32 @@ Open `BTConfig/settings.py` briefly and point to:
 
 ```bash
 PGPASSWORD=password psql -h localhost -U admin -d btpostgres \
-    -c "SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('public','acme','globex');"
+    -c "SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('public','se1','se2');"
 ```
 
-> "Three real PostgreSQL schemas. `public` holds tenant metadata + the Django admin. `acme` and `globex` each hold one customer's defect data, fully isolated."
+> "Three real PostgreSQL schemas. `public` holds tenant metadata + the Django admin. `se1` and `se2` each hold one customer's defect data, fully isolated."
 
 ### 1.3  Show tenant routing by hostname (2 min) — pane B
 
-**ACME user logs in to ACME tenant — succeeds:**
+**SE Tenant 1 user logs in to SE Tenant 1 — succeeds:**
 
 ```bash
-curl -s -X POST http://acme.localhost:8000/api/token/ \
+curl -s -X POST http://se1.localhost:8000/api/token/ \
     -H "Content-Type: application/json" \
-    -d '{"username":"AcmePo","password":"pw"}' | python3 -m json.tool
+    -d '{"username":"user_1","password":"pw"}' | python3 -m json.tool
 ```
 
 Expect HTTP 200 with `access` and `refresh` tokens.
 
-**Same ACME user tries Globex tenant — fails:**
+**Same SE1 user tries SE Tenant 2 — fails:**
 
 ```bash
-curl -s -X POST http://globex.localhost:8000/api/token/ \
+curl -s -X POST http://se2.localhost:8000/api/token/ \
     -H "Content-Type: application/json" \
-    -d '{"username":"AcmePo","password":"pw"}'
+    -d '{"username":"user_1","password":"pw"}'
 ```
 
-Expect HTTP 401 — `AcmePo` does not exist in the Globex schema at all.
+Expect HTTP 401 — `user_1` does not exist in the `se2` schema at all.
 
 > "Same URL path, same credentials, different subdomain — different schema, different user table. The middleware decides which schema to use based on the hostname, before authentication even runs."
 
@@ -144,23 +144,23 @@ Expect HTTP 401 — `AcmePo` does not exist in the Globex schema at all.
 Capture each tenant's token into a shell variable:
 
 ```bash
-ACME_TOKEN=$(curl -s -X POST http://acme.localhost:8000/api/token/ \
+SE1_TOKEN=$(curl -s -X POST http://se1.localhost:8000/api/token/ \
     -H "Content-Type: application/json" \
-    -d '{"username":"AcmePo","password":"pw"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['access'])")
+    -d '{"username":"user_1","password":"pw"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['access'])")
 
-GLOBEX_TOKEN=$(curl -s -X POST http://globex.localhost:8000/api/token/ \
+SE2_TOKEN=$(curl -s -X POST http://se2.localhost:8000/api/token/ \
     -H "Content-Type: application/json" \
-    -d '{"username":"GlobexPo","password":"pw"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['access'])")
+    -d '{"username":"user_6","password":"pw"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['access'])")
 ```
 
 List all defect reports per tenant:
 
 ```bash
-curl -s -H "Authorization: Bearer $ACME_TOKEN"   http://acme.localhost:8000/api/reports/ALL/   | python3 -m json.tool
-curl -s -H "Authorization: Bearer $GLOBEX_TOKEN" http://globex.localhost:8000/api/reports/ALL/ | python3 -m json.tool
+curl -s -H "Authorization: Bearer $SE1_TOKEN" http://se1.localhost:8000/api/reports/ALL/ | python3 -m json.tool
+curl -s -H "Authorization: Bearer $SE2_TOKEN" http://se2.localhost:8000/api/reports/ALL/ | python3 -m json.tool
 ```
 
-> "ACME sees only `AcmeDef1`. Globex sees only `GlobexDef1`. Neither tenant can see the other's data — even though both queries hit the same Django process and the same Postgres instance."
+> "SE Tenant 1 sees only its own `Dr1` (\"Unable to search\"). SE Tenant 2 sees only its own `Dr1` (\"Hit count incorrect\") — same primary key, different rows in different schemas. Neither tenant can see the other's data, even though both queries hit the same Django process and the same Postgres instance."
 
 ### 1.5  Honest limitations (30 s)
 
@@ -178,7 +178,7 @@ Acknowledge upfront, before they ask:
 
 ### 2.2  Swagger UI walkthrough (2 min) — browser tab 1
 
-Open `http://acme.localhost:8000/api/schema/swagger-ui/`.
+Open `http://se1.localhost:8000/api/schema/swagger-ui/`.
 
 Point out, in order:
 - The five tag groups in the left rail: **Authentication**, **Defect Reports**, **Comments**, **Products**, **Metrics**.
@@ -188,7 +188,7 @@ Point out, in order:
 
 ### 2.3  Try an endpoint live in Swagger (1.5 min) — browser
 
-1. Click `POST /api/token/` → **Try it out** → body `{"username":"AcmePo","password":"pw"}` → **Execute**.
+1. Click `POST /api/token/` → **Try it out** → body `{"username":"user_1","password":"pw"}` → **Execute**.
 2. Copy the `access` token.
 3. Click the **Authorize** button at the top → paste `Bearer <token>` → **Authorize**.
 4. Open `GET /api/reports/{status}/` → **Try it out** → `status = ALL` → **Execute**. Show the JSON response.
@@ -197,7 +197,7 @@ Point out, in order:
 
 ### 2.4  ReDoc + Postman as alternatives (30 s) — browser tab 2
 
-Switch to `http://acme.localhost:8000/api/schema/redoc/` — show the cleaner read-only layout suitable for printing or sharing with a non-technical stakeholder. Mention the Postman collection in `postman/collections/` for engineers who prefer that workflow.
+Switch to `http://se1.localhost:8000/api/schema/redoc/` — show the cleaner read-only layout suitable for printing or sharing with a non-technical stakeholder. Mention the Postman collection in `postman/collections/` for engineers who prefer that workflow.
 
 ---
 
@@ -280,15 +280,24 @@ BTAPI/metrics.py      ?      0      ?      0  100.0%
 
 *(Optional)* For a visual artifact, run `coverage html` and open `htmlcov/BTAPI_metrics_py.html` — every line green.
 
-### 4.5  ~~Bonus: hit the live endpoint~~ — SKIP IN DEMO
+### 4.5  Hit the live endpoint on user_7 (30 s) — pane B
 
-> ⚠️ **Do not run this live.** `views.get_developer_metric` does
-> `Developer.objects.get(user__username=id.title())`, and `"AcmeDev".title()`
-> evaluates to `"Acmedev"` — which does not exist in the tenant. This is the
-> case-fragile-lookup bug documented in `CLAUDE.md` (Known Limitations) and
-> sidestepped in the test suite by using TitleCase fixture usernames (`Dev`).
-> The §25 deliverable is the coverage report in §4.4 — that's the grading
-> hook. The live endpoint adds nothing for the panel.
+```bash
+curl -s -H "Authorization: Bearer $SE2_TOKEN" \
+    http://se2.localhost:8000/api/metric/user_7/ | python3 -m json.tool
+```
+
+Expect:
+
+```json
+{"report": "Insufficient data"}
+```
+
+> "user_7's setup is fixedCount=8, reopenedCount=1. The classifier's
+> first gate requires at least 20 fixes before any meaningful judgment
+> is made — with only 8 fixes, the correct answer is *Insufficient
+> data*. This proves the §22-24 implementation is honest about its own
+> data requirements rather than producing a noisy verdict."
 
 ---
 
@@ -322,7 +331,7 @@ BTAPI/metrics.py      ?      0      ?      0  100.0%
 | Symptom | Fast fix |
 |---|---|
 | `psql: connection refused` | Postgres isn't running. **Postgres.app:** click the elephant icon → **Start**. **Homebrew:** `brew services start postgresql@16`. |
-| `acme.localhost` not resolving | macOS resolves `*.localhost` automatically. If it fails, fall back to `127.0.0.1` and pass `Host: acme.localhost` header: `curl -H "Host: acme.localhost" http://127.0.0.1:8000/api/token/ …`. |
+| `se1.localhost` / `se2.localhost` not resolving | macOS resolves `*.localhost` automatically. If it fails, fall back to `127.0.0.1` and pass `Host: se1.localhost` header: `curl -H "Host: se1.localhost" http://127.0.0.1:8000/api/token/ …`. |
 | Swagger UI shows "no endpoints" | Hard-refresh (⌘⇧R). If still empty, restart the dev server in pane A. |
 | `migrate_schemas` errors after a model change | The schema is real — drop and re-bootstrap: `dropdb btpostgres && createdb -O admin btpostgres && python3 manage.py migrate_schemas --shared && python3 manage.py migrate_schemas && python3 manage.py bootstrap_tenants`. **Only do this if you have time** — otherwise skip the broken segment and move on. |
 | Tests fail unexpectedly | Run `python3 manage.py test --settings=BTConfig.settings_test BTAPI.tests.ClassifierTests` first (always green, pure-function). If even that fails, check `pip install -r requirements.txt` and the active venv. |
