@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
 from django.conf import settings
 
 from django.db import models
@@ -72,6 +73,13 @@ class Product(models.Model):
     def __str__(self):
         return self.id
 
+class CommaSeparatedEmailField(models.TextField):
+    def validate(self, value, model_instance):
+        super().validate(value, model_instance)
+        validator = EmailValidator()
+        for email in value.split(','):
+            validator(email.strip())
+
 class DefectReport(models.Model):
     class Status(models.TextChoices):
         NEW = 'New', 'New'
@@ -122,11 +130,12 @@ class DefectReport(models.Model):
         blank=True, 
         related_name='children'
     )
+    email = CommaSeparatedEmailField(null=True, blank=True)
 
     def clean(self):
         if self.parent and self.id and self.parent.id == self.id:
             raise ValidationError("A report cannot be its own parent.")
-        elif self.parent and self.children and self.parent.id in self.children:
+        elif self.parent and self.children and self.parent.id in self.children.all():
             raise ValidationError("A report cannot be a parent and child at the same time.")
         super().clean()
 

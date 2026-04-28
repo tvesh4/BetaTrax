@@ -68,6 +68,20 @@ class DefectReportSerializer(serializers.ModelSerializer):
         if data.get('parent') and self.instance:
             if data['parent'].id == self.instance.id:
                 raise serializers.ValidationError("A report cannot be a duplicate of itself.")
+        
+        request = self.context.get('request')
+        
+        if request and request.user and request.user.is_authenticated:
+            user_email = request.user.email
+            extra_emails = data.get('email', '')
+            if extra_emails and user_email:
+                data['email'] = f"{user_email}, {extra_emails}"
+            else:
+                if extra_emails:
+                    data['email'] = extra_emails
+                if user_email:
+                    data['email'] = user_email
+        
         return data
 
 class ReportLiteSerializer(serializers.ModelSerializer):

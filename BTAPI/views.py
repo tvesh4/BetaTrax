@@ -20,10 +20,10 @@ from drf_spectacular.types import OpenApiTypes
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def post_new_report(request):
-    serializer = DefectReportSerializer(data=request.data)
+    serializer = DefectReportSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         report = serializer.save(testerId=request.user)
-        if request.user.email:
+        if report.email:
             send_status_update_email(report)
         if report.productId.ownerId and report.productId.ownerId.email:
             send_po_update_email(report)
@@ -106,11 +106,31 @@ def get_full_report(request, id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_developer_metric(request, id):
-    developer = get_object_or_404(Developer, user__username=id)
-    report = classify_developer_effectiveness(
-        developer.fixedCount, developer.reopenedCount
-    )
-    return Response({"report": report})
+    developer = get_object_or_404(Developer, user__username=id.title())
+    report = ''
+    fixed_count = developer.fixedCount
+    reopened_count = developer.reopenedCount
+    ratio = 0
+    if fixed_count < 20:
+        report = "Insufficient data"
+        return Response({
+            "report": report
+        })  
+    else:
+        ratio = reopened_count / fixed_count
+        if ratio < 1 / 32:
+            report = "Good"
+        elif ratio < 1 / 8:
+            report = "Fair"
+        else:
+            report = "Poor"
+
+    return Response({
+        "report": report,
+        "fixedCount": developer.fixedCount,
+        "reopenedCount": developer.reopenedCount,
+        "ratio": ratio
+    })
 
 @extend_schema(
     tags=['Defect Reports'],
