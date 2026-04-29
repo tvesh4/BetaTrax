@@ -193,7 +193,6 @@ Step 3 must show `100.0%` under `Cover` for `BTAPI/metrics.py` with an empty `Mi
 - **Self-Service Registration:** New Product Owners and Developers must still be created by a Superuser via `/admin` before they can be assigned to products or reports.
 - **Single Developer per Product:** `Product.devId` is a single FK to `auth.User`. The Final Review setup spec lists two developers (`user_7` and `user_8`) for SE Tenant 2's product; the bootstrap therefore links `user_7` only and seeds `user_8` as a `Developer` in the tenant without an FK to the product. Promoting `devId` to `ManyToManyField` is out of scope for Release 2.
 - **Tenant-Aware Test Pass Pending:** The automated suite runs on SQLite without `django_tenants`; multi-tenant isolation was validated via the manual smoke test in `docs/sprint-3-demo-runbook.md` §1. A Postgres-backed test pass is out of scope for Release 2.
-- **Latent `.title()` Lookups in `views.py`:** Most URL-id lookups still call `.title()` (defect/comment/update endpoints), so seeded IDs are TitleCase (`Dr1`, `Cmt1`, `Cmt2`) to remain stable. The metric endpoint was fixed in Sprint 3 so spec-compliant lowercase usernames resolve.
 
 ## API Endpoints Implemented
 
