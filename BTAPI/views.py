@@ -51,6 +51,12 @@ def get_reports(request, status):
             reports = DefectReport.objects.filter(status=DefectReport.Status.RESOLVED)
         case "REOPENED":
             reports = DefectReport.objects.filter(status=DefectReport.Status.REOPENED)
+        case "CANNOT_REPRODUCE":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.CANNOT_REPRODUCE)
+        case "DUPLICATE":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.DUPLICATE)
+        case "REJECTED":
+            reports = DefectReport.objects.filter(status=DefectReport.Status.REJECTED)
         case "CLOSED":
             reports = DefectReport.objects.filter(status__in=[
                 DefectReport.Status.CANNOT_REPRODUCE,
