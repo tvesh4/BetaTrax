@@ -198,11 +198,11 @@ Step 3 must show `100.0%` under `Cover` for `BTAPI/metrics.py` with an empty `Mi
 
 Application endpoints:
 - `POST /api/defect/` — Submit a new defect report. (PBI-1)
-- `GET  /api/reports/<str:status>/` — List reports filtered by status (`NEW`, `OPEN`, `ASSIGNED`, `FIXED`, `RESOLVED`, `REOPENED`, `CLOSED`, `ALL`). (PBI-10)
+- `GET  /api/reports/<str:status>/` — List reports filtered by status (`NEW`, `OPEN`, `ASSIGNED`, `FIXED`, `RESOLVED`, `REOPENED`, `CLOSED`, `CANNOT_REPRODUCE`, `DUPLICATE`, `REJECTED`, `ALL`). (PBI-10)
 - `GET  /api/reports/assigned/<str:id>/` — View all `ASSIGNED` reports for a specific developer. (PBI-3)
 - `GET  /api/defect/<str:id>/` — View full detail of a specific defect report.
 - `PATCH /api/update/<str:id>/` — Update report status, severity, priority, parent duplicate link, or reassign a developer. (PBI-6, 7, 8, 9)
-- `POST /api/comment/<str:id>/` — Post a new comment on a defect report. (PBI-6 in Sprint 1)
+- `POST /api/comment/<str:id>/` — Post a new comment on a specific defect report. (PBI-6 in Sprint 1)
 - `POST /api/product/` — Register a new product. (PBI-5)
 - `GET  /api/metric/<str:id>/` — Get developer-effectiveness classification (Sprint 3 §22-24). `<id>` is the developer's username.
 
