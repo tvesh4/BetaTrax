@@ -63,11 +63,10 @@ class Product(models.Model):
         related_name='ownerId',
         null=True, blank=True
     )
-    devId = models.ForeignKey(
+    devId = models.ManyToManyField(
         settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
         related_name='devId',
-        null=True, blank=True
+        blank=True, null=True
     )
 
     def __str__(self):
