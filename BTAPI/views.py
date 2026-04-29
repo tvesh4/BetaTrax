@@ -120,7 +120,9 @@ def get_developer_metric(request, id):
     if fixed_count < 20:
         report = "Insufficient data"
         return Response({
-            "report": report
+            "report": report,
+            "fixedCount": developer.fixedCount,
+            "reopenedCount": developer.reopenedCount,
         })  
     else:
         ratio = reopened_count / fixed_count
