@@ -264,7 +264,7 @@ def patch_update_report(request, id):
     responses={201: CommentSerializer},
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsDeveloper | IsOwner])
 def post_comment(request, id):
     report = get_object_or_404(DefectReport, id=id.title())
     serializer = CommentSerializer(data=request.data)
