@@ -37,8 +37,8 @@ class Developer(models.Model):
         on_delete=models.CASCADE, 
         related_name='developer_profile'
     )
-    fixedCount = models.IntegerField()
-    reopenedCount = models.IntegerField()
+    fixedCount = models.IntegerField(default=0)
+    reopenedCount = models.IntegerField(default=0)
 
     def clean(self):
         if not self.user.groups.filter(name='Developer').exists():
